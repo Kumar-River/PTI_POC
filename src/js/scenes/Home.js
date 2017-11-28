@@ -25,8 +25,8 @@ export default class Home extends Component {
       super(props);
       
       this.state = {sSelectedGS1PrefixName:'', sDescriptions:[], sCommodityList:[], sVarietyList:[], sSelectedGTIN:'',sSelectedDesc:'', sItemNumber:'', sSelectedCommodity:'', sSelectedVariety:'',
-                    sLotNumber:'', sSelectedDateType:'', sSelectedDate: this.getFormatedDate(new Date(), 'MM/DD/YYYY'), sSelectedDateFormat:mRadioDateFormatData[0].value,
-                    sGrowingRegion:'', sCity:'', sState:'', sBarcodeValue:'', sLabelGTINValueLbl:'', sLabelLotNumberLbl:''};
+                    sLotNumber:'', sSelectedDateType:'', sSelectedDate: this.getFormatedDate(new Date(), mRadioDateFormatData[0].value), sSelectedDateFormat:mRadioDateFormatData[0].value,
+                    sGrowingRegion:'', sCity:'', sState:'', sBarcodeValue:'', sLabelGTINValueLbl:'', sLabelLotNumberLbl:'', sSelectedPackLine7:'', sSelectedCountryofOriginGDSN:'', sSelectedGrade:''};
 
       mGTINList = _.map(_.uniq(_.map(GTINDBList.GTINRecords.GTINRecord, "GS1PrefixName")), function(item){return {"value":item}});
     }
@@ -35,6 +35,8 @@ export default class Home extends Component {
     if (mGTINList.length > 0) {
       this.onGTINItemSelected(mGTINList[0].value);
     }
+
+    this.setState({sSelectedDateType: mDateTypeList[0].value});
   }
 
 	render() {    
@@ -109,7 +111,7 @@ export default class Home extends Component {
                     formHorizontal={true}
                     labelHorizontal={true}
                     buttonColor={'#2196f3'}
-                    onPress={(value) => {this.setState({sSelectedDateFormat:value})}}/>
+                    onPress={(value) => {this.onDateFormatChanged(value)}}/>
                   <TextField
                     style={styles.textinput}
                     label={strings.growingRegion}
@@ -156,14 +158,24 @@ export default class Home extends Component {
                     </View>
 
                     <View style={{flexDirection:'row'}}>
-                      <Text style={styles.labelPackLine7}>10 KG CT 1</Text>
-                      <Text style={styles.labelDateType}>Pack Date</Text>
+                      <Text style={styles.labelPackLine7}>{this.state.sSelectedPackLine7}</Text>                      
+                      <Text style={styles.labelDateType}>{(this.state.sSelectedDateType != 'None') ? this.state.sSelectedDateType : ''}</Text>
                     </View>
 
-                    <View style={{flexDirection:'row'}}>
-                      <Text style={styles.labelCountryOfOriginGSDN}>Produce of IN{"\n"}4X2PRC Address</Text>
+                    {/*<View style={{flexDirection:'row'}}>
+                      <Text style={styles.labelCountryOfOriginGSDN}>Produce of {this.state.sSelectedCountryofOriginGDSN}{"\n"}Licon st, Los Angeles California 56895</Text>
                       <Text style={styles.labelGrade}>US Fancy</Text>
-                      <Text style={styles.labelSelectedDate}>MmmDd</Text>
+                      <Text style={styles.labelSelectedDate}>{(this.state.sSelectedDateType != 'None') ? this.state.sSelectedDate : ''}</Text>
+                    </View>*/}
+                    <View style={{flexDirection:'row'}}>
+                      <View style={{flex:2, flexDirection:'column'}}>
+                        <View style={{flexDirection:'row'}}>
+                          <Text style={styles.labelCountryOfOriginGSDN} numberOfLines={1}>Produce of {this.state.sSelectedCountryofOriginGDSN}</Text>
+                          <Text style={styles.labelGrade} numberOfLines={1}>{this.state.sSelectedGrade}</Text>
+                        </View>
+                        <Text style={styles.label4x2RPCAddress} numberOfLines={1}>Licon st, Los Angeles California 56895</Text>
+                      </View>
+                      <Text style={styles.labelSelectedDate}>{(this.state.sSelectedDateType != 'None') ? this.state.sSelectedDate : ''}</Text>
                     </View>
 
                     <View style={{flexDirection:'row', justifyContent: 'space-between', alignItems:'flex-end'}}>
@@ -193,15 +205,23 @@ export default class Home extends Component {
       var selectedGS1PrefixName = this.state.sSelectedGS1PrefixName;
       mSelectedGTINArray = _.filter(GTINDBList.GTINRecords.GTINRecord, function(item){return item.GS1PrefixName == selectedGS1PrefixName});
 
-      var  GTINs = _.map(_.uniq(_.map(mSelectedGTINArray, 'GTIN')));
+      var GTINs = _.map(_.uniq(_.map(mSelectedGTINArray, 'GTIN')));
+      var packLine7List = _.map(_.uniq(_.map(mSelectedGTINArray, 'PackLine7')));
+      var countryofOriginGDSNList = _.map(_.uniq(_.map(mSelectedGTINArray, 'CountryofOriginGDSN')));
+      var gradeList = _.map(_.uniq(_.map(mSelectedGTINArray, 'Grade')));
       this.setState({sDescriptions : _.map(_.uniq(_.map(mSelectedGTINArray, 'Description')), function(item){return {"value":item}})});
       this.setState({sCommodityList : _.map(_.uniq(_.map(mSelectedGTINArray, 'Commodity')), function(item){return {"value":item}})});
       this.setState({sVarietyList : _.map(_.uniq(_.map(mSelectedGTINArray, 'Variety')), function(item){return {"value":item}})}, function(){
         
         this.setState({sSelectedGTIN : GTINs[0]});
+        this.setState({sSelectedPackLine7 : packLine7List[0]});
+        this.setState({sSelectedCountryofOriginGDSN: countryofOriginGDSNList[0]});
+        this.setState({sSelectedGrade : gradeList[0]});
         this.setState({sSelectedDesc: (this.state.sDescriptions)[0].value});
         this.setState({sSelectedCommodity:(this.state.sCommodityList)[0].value});
         this.setState({sSelectedVariety:(this.state.sVarietyList)[0].value}, function(){
+
+          console.log('sSelectedCountryofOriginGDSN '+this.state.sSelectedCountryofOriginGDSN);
 
           this.setCODE128BarCodeValue();
         });        
@@ -215,11 +235,22 @@ export default class Home extends Component {
     var selectedDescName = this.state.sSelectedDesc;
     var filteredGTINArrayByDesc = _.filter(mSelectedGTINArray, function(item){return item.Description == selectedDescName});
 
+    var GTINs = _.map(_.uniq(_.map(filteredGTINArrayByDesc, 'GTIN')));
+    var packLine7List = _.map(_.uniq(_.map(filteredGTINArrayByDesc, 'PackLine7')));
+    var countryofOriginGDSNList = _.map(_.uniq(_.map(filteredGTINArrayByDesc, 'CountryofOriginGDSN')));
+    var gradeList = _.map(_.uniq(_.map(filteredGTINArrayByDesc, 'Grade')));
     var commodityList = _.map(_.map(filteredGTINArrayByDesc, 'Commodity'), function(item){return {"value":item}})
     var varietyList = _.map(_.map(filteredGTINArrayByDesc, 'Variety'), function(item){return {"value":item}});
 
+    this.setState({sSelectedGTIN : GTINs[0]});
+    this.setState({sSelectedPackLine7 : packLine7List[0]});
+    this.setState({sSelectedCountryofOriginGDSN: countryofOriginGDSNList[0]});
+    this.setState({sSelectedGrade : gradeList[0]});
     this.setState({sSelectedCommodity: commodityList[0].value});
-    this.setState({sSelectedVariety: varietyList[0].value});
+    this.setState({sSelectedVariety: varietyList[0].value}, function(){
+
+      this.setCODE128BarCodeValue();
+    });
   }
 
   onCommoditySelected = (item) => {
@@ -228,11 +259,23 @@ export default class Home extends Component {
     var selectedCommodityName = this.state.sSelectedCommodity; 
     var filteredGTINArrayByCommodity = _.filter(mSelectedGTINArray, function(item){return item.Commodity == selectedCommodityName});
 
+    var GTINs = _.map(_.uniq(_.map(filteredGTINArrayByCommodity, 'GTIN')));
+    var packLine7List = _.map(_.uniq(_.map(filteredGTINArrayByCommodity, 'PackLine7')));
+    var countryofOriginGDSNList = _.map(_.uniq(_.map(filteredGTINArrayByCommodity, 'CountryofOriginGDSN')));
+    var gradeList = _.map(_.uniq(_.map(filteredGTINArrayByCommodity, 'Grade')));
     this.setState({sDescriptions : _.map(_.map(filteredGTINArrayByCommodity, 'Description'), function(item){return {"value":item}})});
-    this.setState({sVarietyList : _.map(_.map(filteredGTINArrayByCommodity, 'Variety'), function(item){return {"value":item}})});
+    this.setState({sVarietyList : _.map(_.map(filteredGTINArrayByCommodity, 'Variety'), function(item){return {"value":item}})}, function(){
 
-    this.setState({sSelectedDesc: (this.state.sDescriptions)[0].value});
-    this.setState({sSelectedVariety:(this.state.sVarietyList)[0].value});
+      this.setState({sSelectedGTIN : GTINs[0]});
+      this.setState({sSelectedPackLine7 : packLine7List[0]});
+      this.setState({sSelectedCountryofOriginGDSN: countryofOriginGDSNList[0]});
+      this.setState({sSelectedGrade : gradeList[0]});
+      this.setState({sSelectedDesc: (this.state.sDescriptions)[0].value});
+      this.setState({sSelectedVariety:(this.state.sVarietyList)[0].value}, function(){
+
+        this.setCODE128BarCodeValue();
+      });
+    });    
   }
 
   onVarietySelected = (item) => {
@@ -241,28 +284,47 @@ export default class Home extends Component {
     var selectedVarietyName = this.state.sSelectedVariety;
     var filteredGTINArrayByVariety = _.filter(mSelectedGTINArray, function(item){return item.Variety == selectedVarietyName});
 
+    var GTINs = _.map(_.uniq(_.map(filteredGTINArrayByVariety, 'GTIN')));
+    var packLine7List = _.map(_.uniq(_.map(filteredGTINArrayByVariety, 'PackLine7')));
+    var countryofOriginGDSNList = _.map(_.uniq(_.map(filteredGTINArrayByVariety, 'CountryofOriginGDSN')));
+    var gradeList = _.map(_.uniq(_.map(filteredGTINArrayByVariety, 'Grade')));
     this.setState({sDescriptions : _.map(_.map(filteredGTINArrayByVariety, 'Description'), function(item){return {"value":item}})});
-    var commodityList = _.map(_.map(filteredGTINArrayByVariety, 'Commodity'), function(item){return {"value":item}})
+    var commodityList = _.map(_.map(filteredGTINArrayByVariety, 'Commodity'), function(item){return {"value":item}});
 
+    this.setState({sSelectedGTIN : GTINs[0]});
+    this.setState({sSelectedPackLine7 : packLine7List[0]});
+    this.setState({sSelectedCountryofOriginGDSN: countryofOriginGDSNList[0]});
+    this.setState({sSelectedGrade : gradeList[0]});
     this.setState({sSelectedDesc: (this.state.sDescriptions)[0].value});
-    this.setState({sSelectedCommodity: commodityList[0].value});
+    this.setState({sSelectedCommodity: commodityList[0].value}, function(){
+
+      this.setCODE128BarCodeValue();
+    });
   }
 
   onLotNumberChanged = (value) => {
     this.setState({sLotNumber: value}, function(){
       this.setCODE128BarCodeValue();
-    });    
+    });
+  }
+
+  onDateFormatChanged = (value) => {
+    var previousFormat = this.state.sSelectedDateFormat;
+
+    this.setState({sSelectedDateFormat: value}, function(){
+      this.setState({sSelectedDate: this.getFormatedDate( moment(this.state.sSelectedDate, previousFormat).toDate(), this.state.sSelectedDateFormat)});
+    });
   }
 
   showDatePicker = async() => {
     try {
       const {action, year, month, day} = await DatePickerAndroid.open({
-        date: moment(this.state.sSelectedDate, 'MM/DD/YYYY').toDate()
+        date: moment(this.state.sSelectedDate, this.state.sSelectedDateFormat).toDate()
       });
 
       if(action == DatePickerAndroid.dateSetAction) {          
         // Selected year, month (0-11), day
-        this.setState({sSelectedDate: this.getFormatedDate(new Date(year, month, day), 'MM/DD/YYYY')})
+        this.setState({sSelectedDate: this.getFormatedDate(new Date(year, month, day), this.state.sSelectedDateFormat)});
       }
 
       if (action == DatePickerAndroid.dismissedAction) {
@@ -288,7 +350,7 @@ export default class Home extends Component {
     this.setState({sLabelGTINValueLbl: '(01)' + GTINNumber});
     this.setState({sLabelLotNumberLbl: '(10)' + lotNum});
 
-    console.log('lotNum '+lotNum);
+    console.log('GTINNumber '+GTINNumber);
   }
 }
 
@@ -335,7 +397,7 @@ const styles = StyleSheet.create({
     color:'#000000'
   },
   labelPreview:{
-    width:400,
+    width:420,
     height:250,
     borderWidth: 1,
     marginTop:10,
@@ -379,17 +441,21 @@ const styles = StyleSheet.create({
   },
   labelCountryOfOriginGSDN:{
     color:'#000000',
-    fontSize:14,
+    fontSize:12,
     flex:1
   },  
   labelGrade:{
     color:'#000000',
     fontSize:14,
     flex:1
-  },  
+  },
+  label4x2RPCAddress:{
+    color:'#000000',
+    fontSize:12
+  },
   labelSelectedDate:{
     color:'#000000',
-    fontSize:22,
+    fontSize:21,
     textAlign: 'right',
     fontWeight:'bold',
     flex:1
@@ -403,15 +469,15 @@ const styles = StyleSheet.create({
     fontSize:12,
   },
   labelTractorImage:{
-    width:40,
-    height:40,
+    width:30,
+    height:30,
     marginLeft:10,
     marginRight:10,
     resizeMode:'contain'
   },
   labelLastView:{
     width:60,
-    height:50,
+    height:45,
     borderWidth: 1,
     flexDirection:'row',
     alignItems:'flex-end'
