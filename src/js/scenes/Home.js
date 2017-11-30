@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import { StyleSheet, View, Text, Image, DrawerLayoutAndroid, TouchableOpacity, DatePickerAndroid, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Image, DrawerLayoutAndroid, TouchableOpacity, DatePickerAndroid, ScrollView, NativeModules } from 'react-native';
 
-import { Button } from 'react-native-material-buttons';
+import { Button, RaisedTextButton } from 'react-native-material-buttons';
 import LocalizedStrings from 'react-native-localization';
 import { Dropdown } from 'react-native-material-dropdown';
 import { TextField } from 'react-native-material-textfield';
@@ -9,8 +9,11 @@ import _ from 'lodash'
 import moment from 'moment';
 import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-native-simple-radio-button';
 import Barcode from 'react-native-barcode-builder';
+import ViewShot from "react-native-view-shot";
 
 import GTINDBList from '../utils/GTINDB';
+
+var {RNZXing, ZebraPrint} = NativeModules;
 
 var mGTINList;
 var mSelectedGTINArray;
@@ -26,7 +29,8 @@ export default class Home extends Component {
       
       this.state = {sSelectedGS1PrefixName:'', sDescriptions:[], sCommodityList:[], sVarietyList:[], sSelectedGTIN:'',sSelectedDesc:'', sItemNumber:'', sSelectedCommodity:'', sSelectedVariety:'',
                     sLotNumber:'', sSelectedDateType:'', sSelectedDate: this.getFormatedDate(new Date(), mRadioDateFormatData[0].value), sSelectedDateFormat:mRadioDateFormatData[0].value,
-                    sGrowingRegion:'', sCity:'', sState:'', sBarcodeValue:'', sLabelGTINValueLbl:'', sLabelLotNumberLbl:'', sSelectedPackLine7:'', sSelectedCountryofOriginGDSN:'', sSelectedGrade:''};
+                    sGrowingRegion:'', sCity:'', sState:'', sBarcodeValue:'', sGTINBarCodebase64: ' ', sLabelGTINValueLbl:'', sLabelLotNumberLbl:'', sSelectedPackLine7:'', sSelectedCountryofOriginGDSN:'', 
+                    sSelectedGrade:'', sDataMatrixBase64:' ', sQuantityToPrint:'', isFormInValid:true};
 
       mGTINList = _.map(_.uniq(_.map(GTINDBList.GTINRecords.GTINRecord, "GS1PrefixName")), function(item){return {"value":item}});
     }
@@ -37,6 +41,12 @@ export default class Home extends Component {
     }
 
     this.setState({sSelectedDateType: mDateTypeList[0].value});
+
+
+    RNZXing.generateDataMatrixBarcode('123412341234HM01', 100, 100, (base64Image) => {
+        var img = 'data:image/png;base64,'+base64Image;
+        this.setState({sDataMatrixBase64:img})        
+      }); 
   }
 
 	render() {    
@@ -137,59 +147,83 @@ export default class Home extends Component {
                     editable={false}
                     value="4X2RPC"/>
 
-                  <Text>{strings.labelPreview}</Text>
+                  <Text>{strings.labelPreview}</Text>                  
+
                   <View style={styles.labelPreview}>
-                    {this.state.sBarcodeValue ?
-                      <View style={{width:250}}>
-                        <Barcode value={this.state.sBarcodeValue} format="CODE128" width={1} height={50}/>
-                      </View>
-                      :
-                      null
-                    }
+                    <ViewShot ref="viewShot">
+                      <View style={{backgroundColor:'#FFFFFF'}}>
+                        {/*{this.state.sBarcodeValue ?
+                          <View style={{width:250}}>
+                            <Barcode value={this.state.sBarcodeValue} format="CODE128" width={1} height={50}/>
+                          </View>
+                          :
+                          null
+                        }*/}
 
-                    <View style={{flexDirection:'row'}}>
-                      <Text style={styles.labelGTINNumber}>{this.state.sLabelGTINValueLbl}</Text>
-                      <Text style={styles.labelLotNumber}>{this.state.sLabelLotNumberLbl}</Text>
-                    </View>
+                        <Image style={{width: 300, height: 50}} source={{uri: this.state.sGTINBarCodebase64}}/>
 
-                    <View style={{flexDirection:'row'}}>
-                      <Text style={styles.labelCommodity} numberOfLines={1}>{this.state.sSelectedCommodity}</Text>
-                      <Text style={styles.labelVariety}>{this.state.sSelectedVariety}</Text>
-                    </View>
-
-                    <View style={{flexDirection:'row'}}>
-                      <Text style={styles.labelPackLine7}>{this.state.sSelectedPackLine7}</Text>                      
-                      <Text style={styles.labelDateType}>{(this.state.sSelectedDateType != 'None') ? this.state.sSelectedDateType : ''}</Text>
-                    </View>
-
-                    {/*<View style={{flexDirection:'row'}}>
-                      <Text style={styles.labelCountryOfOriginGSDN}>Produce of {this.state.sSelectedCountryofOriginGDSN}{"\n"}Licon st, Los Angeles California 56895</Text>
-                      <Text style={styles.labelGrade}>US Fancy</Text>
-                      <Text style={styles.labelSelectedDate}>{(this.state.sSelectedDateType != 'None') ? this.state.sSelectedDate : ''}</Text>
-                    </View>*/}
-                    <View style={{flexDirection:'row'}}>
-                      <View style={{flex:2, flexDirection:'column'}}>
                         <View style={{flexDirection:'row'}}>
-                          <Text style={styles.labelCountryOfOriginGSDN} numberOfLines={1}>Produce of {this.state.sSelectedCountryofOriginGDSN}</Text>
-                          <Text style={styles.labelGrade} numberOfLines={1}>{this.state.sSelectedGrade}</Text>
+                          <Text style={styles.labelGTINNumber}>{this.state.sLabelGTINValueLbl}</Text>
+                          <Text style={styles.labelLotNumber}>{this.state.sLabelLotNumberLbl}</Text>
                         </View>
-                        <Text style={styles.label4x2RPCAddress} numberOfLines={1}>Licon st, Los Angeles California 56895</Text>
-                      </View>
-                      <Text style={styles.labelSelectedDate}>{(this.state.sSelectedDateType != 'None') ? this.state.sSelectedDate : ''}</Text>
-                    </View>
 
-                    <View style={{flexDirection:'row', justifyContent: 'space-between', alignItems:'flex-end'}}>
-                      <Text style={styles.labelTraceLabel}>Connect to the farm {"\n"} HarvestMark.com</Text>
-                      <Image style={styles.labelTractorImage} source={require("../../res/images/Tractor.png")} />
-                      <Text style={styles.labelHMCode}>1234 1234{"\n"}1234 HM01</Text>
-                      <Image style={styles.labelTractorImage} source={require("../../res/images/Tractor.png")} />
-                      <View style={styles.labelLastView}>
-                        <Text style={styles.number1}>59</Text>
-                        <Text style={styles.number2}>42</Text>
-                      </View>
-                    </View>
+                        <View style={{flexDirection:'row'}}>
+                          <Text style={styles.labelCommodity} numberOfLines={1}>{this.state.sSelectedCommodity}</Text>
+                          <Text style={styles.labelVariety}>{this.state.sSelectedVariety}</Text>
+                        </View>
 
+                        <View style={{flexDirection:'row'}}>
+                          <Text style={styles.labelPackLine7}>{this.state.sSelectedPackLine7}</Text>                      
+                          <Text style={styles.labelDateType}>{(this.state.sSelectedDateType != 'None') ? this.state.sSelectedDateType : ''}</Text>
+                        </View>
+
+                        {/*<View style={{flexDirection:'row'}}>
+                          <Text style={styles.labelCountryOfOriginGSDN}>Produce of {this.state.sSelectedCountryofOriginGDSN}{"\n"}Licon st, Los Angeles California 56895</Text>
+                          <Text style={styles.labelGrade}>US Fancy</Text>
+                          <Text style={styles.labelSelectedDate}>{(this.state.sSelectedDateType != 'None') ? this.state.sSelectedDate : ''}</Text>
+                        </View>*/}
+                        <View style={{flexDirection:'row'}}>
+                          <View style={{flex:2, flexDirection:'column'}}>
+                            <View style={{flexDirection:'row'}}>
+                              <Text style={styles.labelCountryOfOriginGSDN} numberOfLines={1}>Produce of {this.state.sSelectedCountryofOriginGDSN}</Text>
+                              <Text style={styles.labelGrade} numberOfLines={1}>{this.state.sSelectedGrade}</Text>
+                            </View>
+                            <Text style={styles.label4x2RPCAddress} numberOfLines={1}>Licon st, Los Angeles California 56895</Text>
+                          </View>
+                          <Text style={styles.labelSelectedDate}>{(this.state.sSelectedDateType != 'None') ? this.state.sSelectedDate : ''}</Text>
+                        </View>
+
+                        <View style={{flexDirection:'row', justifyContent: 'space-between', alignItems:'flex-end'}}>
+                          <Text style={styles.labelTraceLabel}>Connect to the farm {"\n"} HarvestMark.com</Text>
+                          <Image style={styles.labelTractorImage} source={require("../../res/images/Tractor.png")} />
+                          <Text style={styles.labelHMCode}>1234 1234{"\n"}1234 HM01</Text>
+                          <Image style={styles.labelDatamatrixImage} source={{uri: this.state.sDataMatrixBase64}} />
+                          <View style={styles.labelLastView}>
+                            <Text style={styles.number1}>59</Text>
+                            <Text style={styles.number2}>42</Text>
+                          </View>
+                        </View>
+                      </View>
+                    </ViewShot>
                   </View>
+                </View>
+
+                <View style={styles.contentViewColumn3}>
+                  <TextField
+                    style={styles.textinput}
+                    label={strings.quantityToPrint}
+                    keyboardType='numeric'
+                    value={this.state.sQuantityToPrint}
+                    onChangeText={(text)=> this.onQuantityToPrintChange(text)}/>
+
+                  <RaisedTextButton 
+                    style={styles.printBtn}
+                    titleStyle={{fontSize:20}}
+                    title={strings.print}
+                    color='#3F51B5'
+                    disabled={this.state.isFormInValid}
+                    titleColor='#FFFFFF'
+                    onPress={this.printLabel.bind(this)} />
                 </View>
               </View>
             </ScrollView>
@@ -308,6 +342,20 @@ export default class Home extends Component {
     });
   }
 
+  onQuantityToPrintChange = (text) => {
+    let newText = '';
+    let numbers = '0123456789';
+
+    for (var i = 0; i < text.length; i++) {
+        if ( numbers.indexOf(text[i]) > -1 ) {
+            newText = newText + text[i];
+        }
+    }   
+    this.setState({sQuantityToPrint: newText}, function(){
+      this.validateForm();
+    });   
+  }
+
   onDateFormatChanged = (value) => {
     var previousFormat = this.state.sSelectedDateFormat;
 
@@ -350,7 +398,29 @@ export default class Home extends Component {
     this.setState({sLabelGTINValueLbl: '(01)' + GTINNumber});
     this.setState({sLabelLotNumberLbl: '(10)' + lotNum});
 
-    console.log('GTINNumber '+GTINNumber);
+    RNZXing.generateCODE128Barcode(barcodevalue, 300, 50, (base64Image) => {
+        var img = 'data:image/png;base64,'+base64Image;
+        this.setState({sGTINBarCodebase64:img})        
+      });
+
+    this.validateForm();
+  }
+
+  validateForm() {
+    if (this.state.sSelectedGTIN != '' && this.state.sSelectedDesc != '' && this.state.sSelectedCommodity != '' && this.state.sSelectedVariety != '' && this.state.sLotNumber != '' && this.state.sQuantityToPrint != '' && Number(this.state.sQuantityToPrint) != 0) {
+      this.setState({isFormInValid: false});
+    }
+    else {
+      this.setState({isFormInValid: true});
+    }
+  }
+
+  printLabel = () => {
+    this.refs.viewShot.capture().then(uri => {
+      console.log("do something with ", uri);
+
+      ZebraPrint.printLabel(uri, false, '', '192.168.100.55', '9100');
+    }); 
   }
 }
 
@@ -381,7 +451,11 @@ const styles = StyleSheet.create({
     flex:1
   },
   contentViewColumn2:{
-    flex:1,
+    flex:1.5,
+    marginLeft:15
+  },
+  contentViewColumn3:{
+    flex:0.8,
     marginLeft:15
   },
   textinput: {
@@ -398,10 +472,11 @@ const styles = StyleSheet.create({
   },
   labelPreview:{
     width:420,
-    height:250,
+    height:230,
     borderWidth: 1,
     marginTop:10,
-    padding:5
+    padding:5,
+    backgroundColor:'#FFFFFF'
   },
   labelGTINNumber:{
     color:'#000000',
@@ -471,9 +546,15 @@ const styles = StyleSheet.create({
   labelTractorImage:{
     width:30,
     height:30,
-    marginLeft:10,
-    marginRight:10,
+    marginLeft:8,
+    marginRight:8,
     resizeMode:'contain'
+  },
+  labelDatamatrixImage:{
+    width:40,
+    height:40,
+    marginLeft:8,
+    marginRight:8
   },
   labelLastView:{
     width:60,
@@ -492,6 +573,10 @@ const styles = StyleSheet.create({
     fontSize:22,
     fontWeight:'bold',
     marginLeft:5
+  },
+  printBtn:{
+    marginTop:15,
+    height:50
   }
 });
 
@@ -511,6 +596,7 @@ let strings = new LocalizedStrings({
    printer: "Printer:",
    worker: "Worker:",
    labelPreview: "Label Preview:",
-   quantityToPrint: "Quantity to Print"
+   quantityToPrint: "Quantity to Print",
+   print:"PRINT"
  }
 });
