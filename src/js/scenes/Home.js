@@ -8,12 +8,10 @@ import { TextField } from 'react-native-material-textfield';
 import _ from 'lodash'
 import moment from 'moment';
 import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-native-simple-radio-button';
-import Barcode from 'react-native-barcode-builder';
-import ViewShot from "react-native-view-shot";
 
 import GTINDBList from '../utils/GTINDB';
 
-var {RNZXing, ZebraPrint} = NativeModules;
+var {ZebraPrint, LabelViewManager} = NativeModules;
 
 var mGTINList;
 var mSelectedGTINArray;
@@ -29,8 +27,8 @@ export default class Home extends Component {
       
       this.state = {sSelectedGS1PrefixName:'', sDescriptions:[], sCommodityList:[], sVarietyList:[], sSelectedGTIN:'',sSelectedDesc:'', sItemNumber:'', sSelectedCommodity:'', sSelectedVariety:'',
                     sLotNumber:'', sSelectedDateType:'', sSelectedDate: this.getFormatedDate(new Date(), mRadioDateFormatData[0].value), sSelectedDateFormat:mRadioDateFormatData[0].value,
-                    sGrowingRegion:'', sCity:'', sState:'', sBarcodeValue:'', sGTINBarCodebase64: ' ', sLabelGTINValueLbl:'', sLabelLotNumberLbl:'', sSelectedPackLine7:'', sSelectedCountryofOriginGDSN:'', 
-                    sSelectedGrade:'', sDataMatrixBase64:' ', sQuantityToPrint:'', isFormInValid:true};
+                    sGrowingRegion:'', sCity:'', sState:'', sBarcodeValue:'', sLabelGTINValueLbl:'', sLabelLotNumberLbl:'', sSelectedPackLine7:'', sSelectedCountryofOriginGDSN:'', 
+                    sSelectedGrade:'', sQuantityToPrint:'', isFormInValid:true, sLabelPreviewBas64:' '};
 
       mGTINList = _.map(_.uniq(_.map(GTINDBList.GTINRecords.GTINRecord, "GS1PrefixName")), function(item){return {"value":item}});
     }
@@ -40,13 +38,7 @@ export default class Home extends Component {
       this.onGTINItemSelected(mGTINList[0].value);
     }
 
-    this.setState({sSelectedDateType: mDateTypeList[0].value});
-
-
-    RNZXing.generateDataMatrixBarcode('123412341234HM01', 100, 100, (base64Image) => {
-        var img = 'data:image/png;base64,'+base64Image;
-        this.setState({sDataMatrixBase64:img})        
-      }); 
+    this.setState({sSelectedDateType: mDateTypeList[0].value});    
   }
 
 	render() {    
@@ -107,7 +99,7 @@ export default class Home extends Component {
                       label={strings.date}
                       data={mDateTypeList}
                       value={this.state.sSelectedDateType}
-                      onChangeText={sSelectedDateType => this.setState({sSelectedDateType})}/>
+                      onChangeText={(value) => this.onDateTypeChanged(value)}/>
                     <TouchableOpacity style={{flex:1, marginLeft:15}} onPress={this.showDatePicker.bind(this)}>
                       <TextField
                         style={styles.datePickerText}
@@ -147,65 +139,10 @@ export default class Home extends Component {
                     editable={false}
                     value="4X2RPC"/>
 
-                  <Text>{strings.labelPreview}</Text>                  
+                  <Text>{strings.labelPreview}</Text>
 
-                  <View style={styles.labelPreview}>
-                    <ViewShot ref="viewShot">
-                      <View style={{backgroundColor:'#FFFFFF'}}>
-                        {/*{this.state.sBarcodeValue ?
-                          <View style={{width:250}}>
-                            <Barcode value={this.state.sBarcodeValue} format="CODE128" width={1} height={50}/>
-                          </View>
-                          :
-                          null
-                        }*/}
+                  <Image style={{width: 500, height: 300, resizeMode:'contain', borderWidth:1, borderColor:'#000000'}} source={{uri: this.state.sLabelPreviewBas64}}/>
 
-                        <Image style={{width: 300, height: 50}} source={{uri: this.state.sGTINBarCodebase64}}/>
-
-                        <View style={{flexDirection:'row'}}>
-                          <Text style={styles.labelGTINNumber}>{this.state.sLabelGTINValueLbl}</Text>
-                          <Text style={styles.labelLotNumber}>{this.state.sLabelLotNumberLbl}</Text>
-                        </View>
-
-                        <View style={{flexDirection:'row'}}>
-                          <Text style={styles.labelCommodity} numberOfLines={1}>{this.state.sSelectedCommodity}</Text>
-                          <Text style={styles.labelVariety}>{this.state.sSelectedVariety}</Text>
-                        </View>
-
-                        <View style={{flexDirection:'row'}}>
-                          <Text style={styles.labelPackLine7}>{this.state.sSelectedPackLine7}</Text>                      
-                          <Text style={styles.labelDateType}>{(this.state.sSelectedDateType != 'None') ? this.state.sSelectedDateType : ''}</Text>
-                        </View>
-
-                        {/*<View style={{flexDirection:'row'}}>
-                          <Text style={styles.labelCountryOfOriginGSDN}>Produce of {this.state.sSelectedCountryofOriginGDSN}{"\n"}Licon st, Los Angeles California 56895</Text>
-                          <Text style={styles.labelGrade}>US Fancy</Text>
-                          <Text style={styles.labelSelectedDate}>{(this.state.sSelectedDateType != 'None') ? this.state.sSelectedDate : ''}</Text>
-                        </View>*/}
-                        <View style={{flexDirection:'row'}}>
-                          <View style={{flex:2, flexDirection:'column'}}>
-                            <View style={{flexDirection:'row'}}>
-                              <Text style={styles.labelCountryOfOriginGSDN} numberOfLines={1}>Produce of {this.state.sSelectedCountryofOriginGDSN}</Text>
-                              <Text style={styles.labelGrade} numberOfLines={1}>{this.state.sSelectedGrade}</Text>
-                            </View>
-                            <Text style={styles.label4x2RPCAddress} numberOfLines={1}>Licon st, Los Angeles California 56895</Text>
-                          </View>
-                          <Text style={styles.labelSelectedDate}>{(this.state.sSelectedDateType != 'None') ? this.state.sSelectedDate : ''}</Text>
-                        </View>
-
-                        <View style={{flexDirection:'row', justifyContent: 'space-between', alignItems:'flex-end'}}>
-                          <Text style={styles.labelTraceLabel}>Connect to the farm {"\n"} HarvestMark.com</Text>
-                          <Image style={styles.labelTractorImage} source={require("../../res/images/Tractor.png")} />
-                          <Text style={styles.labelHMCode}>1234 1234{"\n"}1234 HM01</Text>
-                          <Image style={styles.labelDatamatrixImage} source={{uri: this.state.sDataMatrixBase64}} />
-                          <View style={styles.labelLastView}>
-                            <Text style={styles.number1}>59</Text>
-                            <Text style={styles.number2}>42</Text>
-                          </View>
-                        </View>
-                      </View>
-                    </ViewShot>
-                  </View>
                 </View>
 
                 <View style={styles.contentViewColumn3}>
@@ -254,9 +191,7 @@ export default class Home extends Component {
         this.setState({sSelectedDesc: (this.state.sDescriptions)[0].value});
         this.setState({sSelectedCommodity:(this.state.sCommodityList)[0].value});
         this.setState({sSelectedVariety:(this.state.sVarietyList)[0].value}, function(){
-
-          console.log('sSelectedCountryofOriginGDSN '+this.state.sSelectedCountryofOriginGDSN);
-
+          
           this.setCODE128BarCodeValue();
         });        
       });      
@@ -342,6 +277,26 @@ export default class Home extends Component {
     });
   }
 
+  onDateTypeChanged = (value) => {
+    this.setState({sSelectedDateType: value}, function(){
+
+      var labelValues = {"dateType": this.state.sSelectedDateType};
+      this.updateLabelPreview(labelValues);
+    });
+  }
+
+  onDateFormatChanged = (value) => {
+    var previousFormat = this.state.sSelectedDateFormat;
+
+    this.setState({sSelectedDateFormat: value}, function(){
+      this.setState({sSelectedDate: this.getFormatedDate( moment(this.state.sSelectedDate, previousFormat).toDate(), this.state.sSelectedDateFormat)}, function(){
+
+        var labelValues = {"date": this.state.sSelectedDate};
+        this.updateLabelPreview(labelValues);
+      });
+    });
+  }
+
   onQuantityToPrintChange = (text) => {
     let newText = '';
     let numbers = '0123456789';
@@ -355,15 +310,7 @@ export default class Home extends Component {
       this.validateForm();
     });   
   }
-
-  onDateFormatChanged = (value) => {
-    var previousFormat = this.state.sSelectedDateFormat;
-
-    this.setState({sSelectedDateFormat: value}, function(){
-      this.setState({sSelectedDate: this.getFormatedDate( moment(this.state.sSelectedDate, previousFormat).toDate(), this.state.sSelectedDateFormat)});
-    });
-  }
-
+  
   showDatePicker = async() => {
     try {
       const {action, year, month, day} = await DatePickerAndroid.open({
@@ -372,7 +319,11 @@ export default class Home extends Component {
 
       if(action == DatePickerAndroid.dateSetAction) {          
         // Selected year, month (0-11), day
-        this.setState({sSelectedDate: this.getFormatedDate(new Date(year, month, day), this.state.sSelectedDateFormat)});
+        this.setState({sSelectedDate: this.getFormatedDate(new Date(year, month, day), this.state.sSelectedDateFormat)}, function(){
+
+          var labelValues = {"date": this.state.sSelectedDate};
+          this.updateLabelPreview(labelValues);
+        });
       }
 
       if (action == DatePickerAndroid.dismissedAction) {
@@ -396,11 +347,28 @@ export default class Home extends Component {
     var barcodevalue = '01' + GTINNumber + '10' + lotNum;
     this.setState({sBarcodeValue: barcodevalue});
     this.setState({sLabelGTINValueLbl: '(01)' + GTINNumber});
-    this.setState({sLabelLotNumberLbl: '(10)' + lotNum});
+    this.setState({sLabelLotNumberLbl: '(10)' + lotNum}, function(){
 
-    RNZXing.generateCODE128Barcode(barcodevalue, 300, 50, (base64Image) => {
+      var labelValues = {"barcodevalue": this.state.sBarcodeValue,
+                        "GTINNumberLbl": this.state.sLabelGTINValueLbl,
+                        "lotNumberLbl": this.state.sLabelLotNumberLbl,
+                        "commodity": this.state.sSelectedCommodity,
+                        "variety": this.state.sSelectedVariety,
+                        "packLine7": this.state.sSelectedPackLine7,
+                        "dateType": this.state.sSelectedDateType,
+                        "countryOfOrigin": this.state.sSelectedCountryofOriginGDSN,
+                        "grade": this.state.sSelectedGrade,
+                        "date": this.state.sSelectedDate
+                      };
+
+      this.updateLabelPreview(labelValues);
+    });         
+  }
+
+  updateLabelPreview(paramLabelValues) {
+    LabelViewManager.setLabelValues(paramLabelValues, (base64Image) => {
         var img = 'data:image/png;base64,'+base64Image;
-        this.setState({sGTINBarCodebase64:img})        
+        this.setState({sLabelPreviewBas64:img})        
       });
 
     this.validateForm();
@@ -416,11 +384,7 @@ export default class Home extends Component {
   }
 
   printLabel = () => {
-    this.refs.viewShot.capture().then(uri => {
-      console.log("do something with ", uri);
-
-      ZebraPrint.printLabel(uri, false, '', '192.168.100.55', '9100');
-    }); 
+    //ZebraPrint.printLabel(false, '', '192.168.100.55', '9100');
   }
 }
 
@@ -477,102 +441,6 @@ const styles = StyleSheet.create({
     marginTop:10,
     padding:5,
     backgroundColor:'#FFFFFF'
-  },
-  labelGTINNumber:{
-    color:'#000000',
-    fontSize:14
-  },
-  labelLotNumber:{
-    color:'#000000',
-    fontSize:14,
-    marginLeft:10
-  },
-  labelCommodity:{
-    color:'#000000',
-    fontSize:25,
-    fontWeight: 'bold'
-  },
-  labelVariety:{
-    color:'#000000',
-    fontSize:25,
-    fontWeight: 'bold',
-    marginLeft:10
-  },
-  labelPackLine7:{
-    color:'#000000',
-    fontSize:20,
-    fontWeight: 'bold'
-  },
-  labelDateTypeRightView:{
-    flex:1,
-    justifyContent: 'flex-end',
-    flexDirection:'row'
-  },
-  labelDateType:{
-    flex:1,
-    textAlign: 'right',
-    color:'#000000',
-    fontSize:14
-  },
-  labelCountryOfOriginGSDN:{
-    color:'#000000',
-    fontSize:12,
-    flex:1
-  },  
-  labelGrade:{
-    color:'#000000',
-    fontSize:14,
-    flex:1
-  },
-  label4x2RPCAddress:{
-    color:'#000000',
-    fontSize:12
-  },
-  labelSelectedDate:{
-    color:'#000000',
-    fontSize:21,
-    textAlign: 'right',
-    fontWeight:'bold',
-    flex:1
-  },
-  labelTraceLabel:{
-    color:'#000000',
-    fontSize:12,
-  },
-  labelHMCode:{
-    color:'#000000',
-    fontSize:12,
-  },
-  labelTractorImage:{
-    width:30,
-    height:30,
-    marginLeft:8,
-    marginRight:8,
-    resizeMode:'contain'
-  },
-  labelDatamatrixImage:{
-    width:40,
-    height:40,
-    marginLeft:8,
-    marginRight:8
-  },
-  labelLastView:{
-    width:60,
-    height:45,
-    borderWidth: 1,
-    flexDirection:'row',
-    alignItems:'flex-end'
-  },
-  number1:{
-    color:'#000000',
-    fontSize:20,
-    marginLeft:3
-  },
-  number2:{
-    color:'#000000',
-    fontSize:22,
-    fontWeight:'bold',
-    marginLeft:5
   },
   printBtn:{
     marginTop:15,

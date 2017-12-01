@@ -1,9 +1,7 @@
 package com.harvestmarkpti_poc.reactmodules;
 
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Looper;
-import android.provider.MediaStore;
 import android.widget.Toast;
 
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -21,8 +19,6 @@ import com.zebra.sdk.printer.ZebraPrinter;
 import com.zebra.sdk.printer.ZebraPrinterFactory;
 import com.zebra.sdk.printer.ZebraPrinterLanguageUnknownException;
 import com.zebra.sdk.printer.ZebraPrinterLinkOs;
-
-import java.io.IOException;
 
 /**
  * Created by Kumar M on 08-Nov-17.
@@ -47,18 +43,9 @@ public class ZebraPrint extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public synchronized void printLabel(String uriString, boolean isBluetoothConnection, String macAddress, String ipAddress, String portNumber) {
-        Bitmap myBitmap = null;
-
-        System.out.println("printlable "+uriString);
-        try
-        {
-            myBitmap = MediaStore.Images.Media.getBitmap(mReactApplicationContext.getContentResolver(), Uri.parse(uriString));
-            printPhotoFromExternal(myBitmap, isBluetoothConnection, macAddress, ipAddress, portNumber);
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-        }
+    public synchronized void printLabel(boolean isBluetoothConnection, String macAddress, String ipAddress, String portNumber) {
+        LabelViewManager mLabelViewManager = LabelViewManager.GET_INSTANCE(mReactApplicationContext);
+        printPhotoFromExternal(mLabelViewManager.getLabelBitmap(), isBluetoothConnection, macAddress, ipAddress, portNumber);
     }
 
     /**
@@ -71,7 +58,6 @@ public class ZebraPrint extends ReactContextBaseJavaModule
             public void run() {
 
                 try {
-                    //getAndSaveSettings();
                     Looper.prepare();
                     connection = getZebraPrinterConn(isBluetoothConnection, macAddress, ipAddress, portNumber);
                     connection.open();
@@ -85,7 +71,7 @@ public class ZebraPrint extends ReactContextBaseJavaModule
                     if (printerStatus.isReadyToPrint) {
                         try {
                             helper.showLoadingDialog("Printer Ready \nProcessing to print");
-                            printer.printImage(new ZebraImageAndroid(bitmap), 0, 0, bitmap.getWidth(), bitmap.getHeight(), false);
+                            printer.printImage(new ZebraImageAndroid(bitmap), 0, 0, /*bitmap.getWidth()*/700, /*bitmap.getHeight()*/550, false);
                         } catch (ConnectionException e) {
                             helper.showErrorDialogOnGuiThread(e.getMessage());
                         }
@@ -155,8 +141,7 @@ public class ZebraPrint extends ReactContextBaseJavaModule
 
             }
         });
-
-
         return printer;
     }
+
 }

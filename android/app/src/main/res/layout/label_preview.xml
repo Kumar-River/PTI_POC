@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="400dp"
+              android:layout_height="wrap_content"
+              android:background="#FFFFFF"
+              android:orientation="vertical"
+              android:padding="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/xIvBarcode"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            tools:src="@drawable/barcode"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/xTvGTINNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:textColor="#000000"
+            android:textSize="16dp"
+            tools:text="(01)8123423412347293"/>
+
+        <TextView
+            android:id="@+id/xTvLotNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:lines="1"
+            android:textColor="#000000"
+            android:textSize="16dp"
+            tools:text="(10)3459345"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/xTvCommodity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:textColor="#000000"
+            android:textSize="24dp"
+            android:textStyle="bold"
+            tools:text="APPLES"/>
+
+        <TextView
+            android:id="@+id/xTvVariety"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:lines="1"
+            android:textColor="#000000"
+            android:textSize="24dp"
+            android:textStyle="bold"
+            tools:text="JAZZ"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/xTvPackLine"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:lines="1"
+            android:textColor="#000000"
+            android:textSize="18dp"
+            android:textStyle="bold"
+            tools:text="50KG CT 25/25 LB"/>
+
+        <TextView
+            android:id="@+id/xTvDateType"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_weight="0.3"
+            android:gravity="center"
+            android:lines="1"
+            android:textColor="#000000"
+            android:textSize="14dp"
+            tools:text="Pack Date"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/xTvCountryOfOrigin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:lines="1"
+                    android:textColor="#000000"
+                    android:textSize="12dp"
+                    tools:text="Produce of USA"/>
+
+                <TextView
+                    android:id="@+id/xTvGrade"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:lines="1"
+                    android:textColor="#000000"
+                    android:textSize="14dp"
+                    tools:text="US Extra Fancy"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/xTv4x2RPCAddress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:lines="1"
+                android:text="@string/rpcaddress"
+                android:textColor="#000000"
+                android:textSize="12dp"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/xTvDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:lines="1"
+            android:textColor="#000000"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            tools:text="08/12/2017"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/xTVTraceLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_weight="1"
+            android:maxLines="2"
+            android:text="@string/traceLabel"
+            android:textColor="#000000"
+            android:textSize="12dp"/>
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:src="@drawable/tractor"/>
+
+        <TextView
+            android:id="@+id/xTVHMCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:maxLines="2"
+            android:text="@string/hmcode"
+            android:textColor="#000000"
+            android:textSize="12dp"/>
+
+        <ImageView
+            android:id="@+id/xIvDataMatrixCode"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="bottom"
+            android:layout_weight="1"
+            tools:src="@drawable/untitled"/>
+
+        <LinearLayout
+            android:layout_width="50dp"
+            android:layout_height="40dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/border">
+
+            <TextView
+                android:id="@+id/xTvNumber1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="bottom|center_horizontal"
+                android:lines="2"
+                android:text="52"
+                android:textColor="#000000"
+                android:textSize="16dp"/>
+
+            <TextView
+                android:id="@+id/xTvNumber2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="bottom|center_horizontal"
+                android:lines="2"
+                android:text="63"
+                android:textColor="#000000"
+                android:textSize="22dp"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

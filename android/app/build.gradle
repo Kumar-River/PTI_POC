@@ -148,7 +148,6 @@ android {
 }
 
 dependencies {
-    compile project(':react-native-view-shot')
     implementation project(':react-native-localization')
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:23.0.1'
