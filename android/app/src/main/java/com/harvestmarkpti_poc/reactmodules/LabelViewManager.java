@@ -36,7 +36,10 @@ public class LabelViewManager  extends ReactContextBaseJavaModule
 {
     private static LabelViewManager mInstance;
     private View mLabelView;
-
+    private static final String KEY_BARCODE_VALUE = "barcodevalue", KEY_GTIN_NUMBER_LBL = "GTINNumberLbl",
+            KEY_LOT_NUMBER_LBL = "lotNumberLbl", KEY_COMMODITY = "commodity", KEY_VARIETY = "variety",
+            KEY_PACKLINE7 = "packLine7", KEY_DATE_TYPE = "dateType", KEY_COUNTRY_OF_ORIGIN = "countryOfOrigin",
+            KEY_GRADE = "grade", KEY_DATE = "date";
 
     private LabelViewManager(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -86,39 +89,39 @@ public class LabelViewManager  extends ReactContextBaseJavaModule
     @ReactMethod
     public void setLabelValues(ReadableMap labelValues, Callback callback) {
 
-        System.out.println("labelValues "+labelValues);
+        System.out.println("labelvaleus "+labelValues);
 
         if (labelValues == null){
             return;
         }
 
-        if(labelValues.hasKey("barcodevalue")){
+        if(labelValues.hasKey(KEY_BARCODE_VALUE)){
             ImageView mIvBarCode = (ImageView)getLabelView().findViewById(R.id.xIvBarcode);
-            mIvBarCode.setImageBitmap(getCODE128BarcodeBitmap(labelValues.getString("barcodevalue"), 400, 50));
+            mIvBarCode.setImageBitmap(getCODE128BarcodeBitmap(labelValues.getString(KEY_BARCODE_VALUE), 400, 50));
         }
 
-        if(labelValues.hasKey("GTINNumberLbl")){
-            ((TextView)getLabelView().findViewById(R.id.xTvGTINNumber)).setText(labelValues.getString("GTINNumberLbl"));
+        if(labelValues.hasKey(KEY_GTIN_NUMBER_LBL)){
+            ((TextView)getLabelView().findViewById(R.id.xTvGTINNumber)).setText(labelValues.getString(KEY_GTIN_NUMBER_LBL));
         }
 
-        if(labelValues.hasKey("lotNumberLbl")){
-            ((TextView)getLabelView().findViewById(R.id.xTvLotNumber)).setText(labelValues.getString("lotNumberLbl"));
+        if(labelValues.hasKey(KEY_LOT_NUMBER_LBL)){
+            ((TextView)getLabelView().findViewById(R.id.xTvLotNumber)).setText(labelValues.getString(KEY_LOT_NUMBER_LBL));
         }
 
-        if(labelValues.hasKey("commodity")){
-            ((TextView)getLabelView().findViewById(R.id.xTvCommodity)).setText(labelValues.getString("commodity"));
+        if(labelValues.hasKey(KEY_COMMODITY)){
+            ((TextView)getLabelView().findViewById(R.id.xTvCommodity)).setText(labelValues.getString(KEY_COMMODITY));
         }
 
-        if(labelValues.hasKey("variety")){
-            ((TextView)getLabelView().findViewById(R.id.xTvVariety)).setText(labelValues.getString("variety"));
+        if(labelValues.hasKey(KEY_VARIETY)){
+            ((TextView)getLabelView().findViewById(R.id.xTvVariety)).setText(labelValues.getString(KEY_VARIETY));
         }
 
-        if(labelValues.hasKey("packLine7")){
-            ((TextView)getLabelView().findViewById(R.id.xTvPackLine)).setText(labelValues.getString("packLine7"));
+        if(labelValues.hasKey(KEY_PACKLINE7)){
+            ((TextView)getLabelView().findViewById(R.id.xTvPackLine)).setText(labelValues.getString(KEY_PACKLINE7));
         }
 
-        if(labelValues.hasKey("dateType")){
-            String dateType = labelValues.getString("dateType");
+        if(labelValues.hasKey(KEY_DATE_TYPE)){
+            String dateType = labelValues.getString(KEY_DATE_TYPE);
 
             TextView mTvDateType = (TextView)getLabelView().findViewById(R.id.xTvDateType);
             mTvDateType.setText(dateType);
@@ -128,16 +131,16 @@ public class LabelViewManager  extends ReactContextBaseJavaModule
             getLabelView().findViewById(R.id.xTvDate).setVisibility(visibility);
         }
 
-        if(labelValues.hasKey("countryOfOrigin")){
-            ((TextView)getLabelView().findViewById(R.id.xTvCountryOfOrigin)).setText(getReactApplicationContext().getString(R.string.produce_of) +" "+ labelValues.getString("countryOfOrigin"));
+        if(labelValues.hasKey(KEY_COUNTRY_OF_ORIGIN)){
+            ((TextView)getLabelView().findViewById(R.id.xTvCountryOfOrigin)).setText(getReactApplicationContext().getString(R.string.produce_of) +" "+ labelValues.getString(KEY_COUNTRY_OF_ORIGIN));
         }
 
-        if(labelValues.hasKey("grade")){
-            ((TextView)getLabelView().findViewById(R.id.xTvGrade)).setText(labelValues.getString("grade"));
+        if(labelValues.hasKey(KEY_GRADE)){
+            ((TextView)getLabelView().findViewById(R.id.xTvGrade)).setText(labelValues.getString(KEY_GRADE));
         }
 
-        if(labelValues.hasKey("date")){
-            ((TextView)getLabelView().findViewById(R.id.xTvDate)).setText(labelValues.getString("date"));
+        if(labelValues.hasKey(KEY_DATE)){
+            ((TextView)getLabelView().findViewById(R.id.xTvDate)).setText(labelValues.getString(KEY_DATE));
         }
 
         ImageView mIvDataMatrixCode = (ImageView) getLabelView().findViewById(R.id.xIvDataMatrixCode);

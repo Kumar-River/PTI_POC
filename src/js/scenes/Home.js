@@ -12,13 +12,15 @@ import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-
 import GTINDBList from '../utils/GTINDB';
 
 var {ZebraPrint, LabelViewManager} = NativeModules;
-
 var mGTINList;
 var mSelectedGTINArray;
 const mDateTypeList = [{value:"Pack Date"}, {value:"Harvest Date"}, {value:"Best By"}, {value:"Sell By"}, {value:"Use By"}, {value:"None"}];
+const mRadioDateFormatData = [{label: 'MM/DD/YYYY \n Eg: 08/24/2015', value: 'MM/DD/YYYY' }, {label: 'DD/MMM/YYYY \n Eg: 24/AUG/2015', value: 'DD/MMM/YYYY' }];
+const BLUETOOTH = 0, IP_DNS = 1;
+const mRadioPrintConnectionTypes = [{label:'Bluetooth', value:BLUETOOTH}, {label:'IP/DNS', value:IP_DNS}];
+var KEYS = { BARCODE_VALUE:"barcodevalue", GTIN_NUMBER_LBL:"GTINNumberLbl", LOT_NUMBER_LBL:"lotNumberLbl", COMMODITY:"commodity", 
+                VARIETY:"variety", PACKLINE7:"packLine7", DATE_TYPE:"dateType", COUNTRY_OF_ORIGIN:"countryOfOrigin", GRADE:"grade", DATE:"date"};
 
-const mRadioDateFormatData = [{label: 'MM/DD/YYYY \n Eg: 08/24/2015', value: 'MM/DD/YYYY' },
-                    {label: 'DD/MMM/YYYY \n Eg: 24/AUG/2015', value: 'DD/MMM/YYYY' }];
 
 export default class Home extends Component {
 
@@ -28,7 +30,8 @@ export default class Home extends Component {
       this.state = {sSelectedGS1PrefixName:'', sDescriptions:[], sCommodityList:[], sVarietyList:[], sSelectedGTIN:'',sSelectedDesc:'', sItemNumber:'', sSelectedCommodity:'', sSelectedVariety:'',
                     sLotNumber:'', sSelectedDateType:'', sSelectedDate: this.getFormatedDate(new Date(), mRadioDateFormatData[0].value), sSelectedDateFormat:mRadioDateFormatData[0].value,
                     sGrowingRegion:'', sCity:'', sState:'', sBarcodeValue:'', sLabelGTINValueLbl:'', sLabelLotNumberLbl:'', sSelectedPackLine7:'', sSelectedCountryofOriginGDSN:'', 
-                    sSelectedGrade:'', sQuantityToPrint:'', isFormInValid:true, sLabelPreviewBas64:' '};
+                    sSelectedGrade:'', sQuantityToPrint:'', isFormInValid:true, sLabelPreviewBas64:' ', sSelectedPrinterConnectionType:BLUETOOTH,
+                    sMacAddress:'', sIpAddress:'', sPort:'9100', isPrinterDataEntered: false};
 
       mGTINList = _.map(_.uniq(_.map(GTINDBList.GTINRecords.GTINRecord, "GS1PrefixName")), function(item){return {"value":item}});
     }
@@ -139,6 +142,40 @@ export default class Home extends Component {
                     editable={false}
                     value="4X2RPC"/>
 
+                  <Text>{strings.printer}</Text>
+                  <RadioForm
+                    radio_props={mRadioPrintConnectionTypes}
+                    formHorizontal={true}
+                    labelHorizontal={true}
+                    buttonColor={'#2196f3'}
+                    onPress={(value) => {this.onPrinterConnectionTypeChanged(value)}}/>
+                  {(this.state.sSelectedPrinterConnectionType == BLUETOOTH) ?
+                    <TextField
+                      style={styles.textinput}
+                      label={strings.macAddress}
+                      value={this.state.sMacAddress}
+                      onChangeText={(value) => {this.onMacAddressChanged(value)}}/>
+                    :
+                    <View style={{flexDirection:'row'}}>
+                      <View style={{flex:1}}>
+                        <TextField
+                          style={styles.textinput}
+                          label={strings.ipAddress}
+                          value={this.state.sIpAddress}
+                          onChangeText={(value) => {this.onIPAddressChanged(value)}}/>
+                      </View>
+                      <View style={{flex:1, marginLeft:15}}>
+                        <TextField
+                          style={styles.textinput}
+                          label={strings.port}
+                          value={this.state.sPort}
+                          maxLength={5}
+                          keyboardType='numeric'
+                          onChangeText={(value) => {this.onPortChanged(value)}}/>
+                      </View>
+                    </View>
+                  }
+
                   <Text>{strings.labelPreview}</Text>
 
                   <Image style={{width: 500, height: 300, resizeMode:'contain', borderWidth:1, borderColor:'#000000'}} source={{uri: this.state.sLabelPreviewBas64}}/>
@@ -160,7 +197,7 @@ export default class Home extends Component {
                     color='#3F51B5'
                     disabled={this.state.isFormInValid}
                     titleColor='#FFFFFF'
-                    onPress={this.printLabel.bind(this)} />
+                    onPress={this.onPrintBtnClicked.bind(this)} />
                 </View>
               </View>
             </ScrollView>
@@ -272,7 +309,7 @@ export default class Home extends Component {
   }
 
   onLotNumberChanged = (value) => {
-    this.setState({sLotNumber: value}, function(){
+    this.setState({sLotNumber: value.trim()}, function(){
       this.setCODE128BarCodeValue();
     });
   }
@@ -280,7 +317,7 @@ export default class Home extends Component {
   onDateTypeChanged = (value) => {
     this.setState({sSelectedDateType: value}, function(){
 
-      var labelValues = {"dateType": this.state.sSelectedDateType};
+      var labelValues = {[KEYS.DATE_TYPE]: this.state.sSelectedDateType};
       this.updateLabelPreview(labelValues);
     });
   }
@@ -291,9 +328,47 @@ export default class Home extends Component {
     this.setState({sSelectedDateFormat: value}, function(){
       this.setState({sSelectedDate: this.getFormatedDate( moment(this.state.sSelectedDate, previousFormat).toDate(), this.state.sSelectedDateFormat)}, function(){
 
-        var labelValues = {"date": this.state.sSelectedDate};
+        var labelValues = {[KEYS.DATE]: this.state.sSelectedDate};
         this.updateLabelPreview(labelValues);
       });
+    });
+  }
+
+  onPrinterConnectionTypeChanged = (value) => {
+    this.setState({sSelectedPrinterConnectionType:value}, function(){
+      this.validatePrinterData();
+    })
+  }
+
+  onMacAddressChanged = (value) => {
+    this.setState({sMacAddress: value}, function(){
+      this.validatePrinterData();
+    });
+  }
+
+  onIPAddressChanged = (value) => {
+    this.setState({sIpAddress: value}, function(){
+      this.validatePrinterData();
+    });
+  }
+
+  onPortChanged = (value) => {
+    this.setState({sPort: value}, function(){
+      this.validatePrinterData();
+    });
+  }
+
+  validatePrinterData() {
+    var isValid = false;
+    if (this.state.sSelectedPrinterConnectionType == BLUETOOTH) {
+      isValid = (this.state.sMacAddress.trim().length > 0) ? true : false;
+    }
+    else {
+      isValid = (this.state.sIpAddress.trim().length > 0 && this.state.sPort.trim().length > 0) ? true : false;
+    }
+
+    this.setState({isPrinterDataEntered: isValid}, function(){
+      this.validateForm();
     });
   }
 
@@ -321,7 +396,7 @@ export default class Home extends Component {
         // Selected year, month (0-11), day
         this.setState({sSelectedDate: this.getFormatedDate(new Date(year, month, day), this.state.sSelectedDateFormat)}, function(){
 
-          var labelValues = {"date": this.state.sSelectedDate};
+          var labelValues = {[KEYS.DATE]: this.state.sSelectedDate};
           this.updateLabelPreview(labelValues);
         });
       }
@@ -349,16 +424,16 @@ export default class Home extends Component {
     this.setState({sLabelGTINValueLbl: '(01)' + GTINNumber});
     this.setState({sLabelLotNumberLbl: '(10)' + lotNum}, function(){
 
-      var labelValues = {"barcodevalue": this.state.sBarcodeValue,
-                        "GTINNumberLbl": this.state.sLabelGTINValueLbl,
-                        "lotNumberLbl": this.state.sLabelLotNumberLbl,
-                        "commodity": this.state.sSelectedCommodity,
-                        "variety": this.state.sSelectedVariety,
-                        "packLine7": this.state.sSelectedPackLine7,
-                        "dateType": this.state.sSelectedDateType,
-                        "countryOfOrigin": this.state.sSelectedCountryofOriginGDSN,
-                        "grade": this.state.sSelectedGrade,
-                        "date": this.state.sSelectedDate
+      var labelValues = {[KEYS.BARCODE_VALUE]: this.state.sBarcodeValue,
+                        [KEYS.GTIN_NUMBER_LBL]: this.state.sLabelGTINValueLbl,
+                        [KEYS.LOT_NUMBER_LBL]: this.state.sLabelLotNumberLbl,
+                        [KEYS.COMMODITY]: this.state.sSelectedCommodity,
+                        [KEYS.VARIETY]: this.state.sSelectedVariety,
+                        [KEYS.PACKLINE7]: this.state.sSelectedPackLine7,
+                        [KEYS.DATE_TYPE]: this.state.sSelectedDateType,
+                        [KEYS.COUNTRY_OF_ORIGIN]: this.state.sSelectedCountryofOriginGDSN,
+                        [KEYS.GRADE]: this.state.sSelectedGrade,
+                        [KEYS.DATE]: this.state.sSelectedDate
                       };
 
       this.updateLabelPreview(labelValues);
@@ -375,7 +450,9 @@ export default class Home extends Component {
   }
 
   validateForm() {
-    if (this.state.sSelectedGTIN != '' && this.state.sSelectedDesc != '' && this.state.sSelectedCommodity != '' && this.state.sSelectedVariety != '' && this.state.sLotNumber != '' && this.state.sQuantityToPrint != '' && Number(this.state.sQuantityToPrint) != 0) {
+    if (this.state.sSelectedGTIN != '' && this.state.sSelectedDesc != '' && this.state.sSelectedCommodity != '' 
+          && this.state.sSelectedVariety != '' && this.state.sLotNumber != '' && this.state.isPrinterDataEntered 
+          && this.state.sQuantityToPrint != '' && Number(this.state.sQuantityToPrint) != 0) {
       this.setState({isFormInValid: false});
     }
     else {
@@ -383,8 +460,14 @@ export default class Home extends Component {
     }
   }
 
-  printLabel = () => {
-    //ZebraPrint.printLabel(false, '', '192.168.100.55', '9100');
+  onPrintBtnClicked = () => {
+    var isBluetooth = this.state.sSelectedPrinterConnectionType == BLUETOOTH;
+
+    //ZebraPrint.printLabel(false, '', '192.168.100.55', '9100');    
+    ZebraPrint.printLabel(isBluetooth, this.state.sMacAddress, this.state.sIpAddress, this.state.sPort, (isPrintSuccess) => {
+
+      console.log('isPrintSuccess '+isPrintSuccess);
+    });
   }
 }
 
@@ -462,6 +545,9 @@ let strings = new LocalizedStrings({
    state: "State:",
    labelSelection: "Label Selection:",
    printer: "Printer:",
+   macAddress: "MAC Address",
+   ipAddress: "IP Address",
+   port:"Port",
    worker: "Worker:",
    labelPreview: "Label Preview:",
    quantityToPrint: "Quantity to Print",

@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.os.Looper;
 import android.widget.Toast;
 
+import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -27,7 +28,7 @@ import com.zebra.sdk.printer.ZebraPrinterLinkOs;
 public class ZebraPrint extends ReactContextBaseJavaModule
 {
     private ReactApplicationContext mReactApplicationContext;
-    private Connection connection;
+    private Connection mConnection;
 
     private ZebraPrintUIHelper helper;
 
@@ -43,24 +44,24 @@ public class ZebraPrint extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public synchronized void printLabel(boolean isBluetoothConnection, String macAddress, String ipAddress, String portNumber) {
+    public synchronized void printLabel(boolean isBluetoothConnection, String macAddress, String ipAddress, String portNumber, Callback callback) {
         LabelViewManager mLabelViewManager = LabelViewManager.GET_INSTANCE(mReactApplicationContext);
-        printPhotoFromExternal(mLabelViewManager.getLabelBitmap(), isBluetoothConnection, macAddress, ipAddress, portNumber);
+        printPhotoFromExternal(mLabelViewManager.getLabelBitmap(), isBluetoothConnection, macAddress, ipAddress, portNumber, callback);
     }
 
     /**
      * This method makes the call to the printer and send the images to the printer to print.
      * @param bitmap
      */
-    private void printPhotoFromExternal(final Bitmap bitmap, final boolean isBluetoothConnection, final String macAddress, final String ipAddress, final String portNumber) {
+    private void printPhotoFromExternal(final Bitmap bitmap, final boolean isBluetoothConnection, final String macAddress, final String ipAddress, final String portNumber, final Callback callback) {
 
         new Thread(new Runnable() {
             public void run() {
 
                 try {
                     Looper.prepare();
-                    connection = getZebraPrinterConn(isBluetoothConnection, macAddress, ipAddress, portNumber);
-                    connection.open();
+                    mConnection = getZebraPrinterConn(isBluetoothConnection, macAddress, ipAddress, portNumber);
+                    mConnection.open();
                     ZebraPrinter printer = getPrinterStatus();
                     ZebraPrinterLinkOs linkOsPrinter = ZebraPrinterFactory.createLinkOsPrinter(printer);
                     PrinterStatus printerStatus = (linkOsPrinter != null) ? linkOsPrinter.getCurrentStatus() : printer.getCurrentStatus();
@@ -72,6 +73,8 @@ public class ZebraPrint extends ReactContextBaseJavaModule
                         try {
                             helper.showLoadingDialog("Printer Ready \nProcessing to print");
                             printer.printImage(new ZebraImageAndroid(bitmap), 0, 0, /*bitmap.getWidth()*/700, /*bitmap.getHeight()*/550, false);
+
+                            callback.invoke(true);
                         } catch (ConnectionException e) {
                             helper.showErrorDialogOnGuiThread(e.getMessage());
                         }
@@ -85,7 +88,7 @@ public class ZebraPrint extends ReactContextBaseJavaModule
                         helper.showErrorMessage("Error: Please check the Connection of the Printer.");
                     }
 
-                    connection.close();
+                    mConnection.close();
 
                 } catch (ConnectionException e) {
                     helper.showErrorDialogOnGuiThread(e.getMessage());
@@ -125,13 +128,13 @@ public class ZebraPrint extends ReactContextBaseJavaModule
      */
     private ZebraPrinter getPrinterStatus() throws ConnectionException, ZebraPrinterLanguageUnknownException {
 
-        ZebraPrinter printer = ZebraPrinterFactory.getInstance(connection);
+        ZebraPrinter printer = ZebraPrinterFactory.getInstance(mConnection);
 
-        final String printerLanguage = SGD.GET("device.languages", connection);
+        final String printerLanguage = SGD.GET("device.languages", mConnection);
 
         final String displayPrinterLanguage = "Printer Language is " + printerLanguage;
 
-        SGD.SET("device.languages", "hybrid_xml_zpl", connection);
+        SGD.SET("device.languages", "hybrid_xml_zpl", mConnection);
 
         mReactApplicationContext.getCurrentActivity().runOnUiThread(new Runnable() {
             @Override
