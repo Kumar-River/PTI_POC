@@ -463,8 +463,28 @@ export default class Home extends Component {
   onPrintBtnClicked = () => {
     var isBluetooth = this.state.sSelectedPrinterConnectionType == BLUETOOTH;
 
+    if (isBluetooth) {
+      ZebraPrint.isBluetoothEnabled((isEnabled) => {
+        console.log('response isEnabled '+isEnabled);
+
+        if (isEnabled) {
+          this.printTheLabel(isBluetooth);
+        }
+        else {
+          console.log('not Enabled');
+        }
+      });
+    }
+    else {
+      this.printTheLabel(isBluetooth);
+    }
+
+    
+  }
+
+  printTheLabel(isBluetooth) {
     //ZebraPrint.printLabel(false, '', '192.168.100.55', '9100');    
-    ZebraPrint.printLabel(isBluetooth, this.state.sMacAddress, this.state.sIpAddress, this.state.sPort, (isPrintSuccess) => {
+    ZebraPrint.printLabel(isBluetooth, this.state.sMacAddress, this.state.sIpAddress, this.state.sPort, this.state.sQuantityToPrint, (isPrintSuccess) => {
 
       console.log('isPrintSuccess '+isPrintSuccess);
     });

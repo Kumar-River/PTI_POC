@@ -1,4 +1,4 @@
-package com.harvestmarkpti_poc.reactmodules;
+package com.yotta.harvestmark.ptipoc.reactmodules;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -21,7 +21,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.datamatrix.DataMatrixWriter;
 import com.google.zxing.datamatrix.encoder.SymbolShapeHint;
-import com.harvestmarkpti_poc.R;
+import com.yotta.harvestmark.ptipoc.R;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;

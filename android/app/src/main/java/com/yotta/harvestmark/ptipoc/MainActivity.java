@@ -1,4 +1,4 @@
-package com.harvestmarkpti_poc;
+package com.yotta.harvestmark.ptipoc;
 
 import com.facebook.react.ReactActivity;
 

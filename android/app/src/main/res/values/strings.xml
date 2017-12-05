@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">HarvestMarkPTI_POC</string>
+    <string name="app_name">HarvestMarkPTI POC</string>
     <string name="produce_of">Produce of</string>
     <string name="rpcaddress">Licon st Los Angeles California 56825</string>
     <string name="traceLabel">Connect to the farm\nHarvestMark.com</string>

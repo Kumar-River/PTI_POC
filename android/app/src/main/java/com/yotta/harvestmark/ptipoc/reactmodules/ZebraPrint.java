@@ -1,5 +1,6 @@
-package com.harvestmarkpti_poc.reactmodules;
+package com.yotta.harvestmark.ptipoc.reactmodules;
 
+import android.bluetooth.BluetoothAdapter;
 import android.graphics.Bitmap;
 import android.os.Looper;
 import android.widget.Toast;
@@ -8,7 +9,7 @@ import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.harvestmarkpti_poc.helperclasses.ZebraPrintUIHelper;
+import com.yotta.harvestmark.ptipoc.helperclasses.ZebraPrintUIHelper;
 import com.zebra.sdk.comm.BluetoothConnection;
 import com.zebra.sdk.comm.Connection;
 import com.zebra.sdk.comm.ConnectionException;
@@ -44,16 +45,32 @@ public class ZebraPrint extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public synchronized void printLabel(boolean isBluetoothConnection, String macAddress, String ipAddress, String portNumber, Callback callback) {
+    public synchronized void printLabel(boolean isBluetoothConnection, String macAddress, String ipAddress, String portNumber, String copies, Callback callback) {
         LabelViewManager mLabelViewManager = LabelViewManager.GET_INSTANCE(mReactApplicationContext);
-        printPhotoFromExternal(mLabelViewManager.getLabelBitmap(), isBluetoothConnection, macAddress, ipAddress, portNumber, callback);
+        printPhotoFromExternal(mLabelViewManager.getLabelBitmap(), isBluetoothConnection, macAddress, ipAddress, portNumber, Integer.parseInt(copies), callback);
     }
 
+    @ReactMethod
+    public void isBluetoothEnabled(Callback callback) {
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            // Device does not support Bluetooth
+            callback.invoke(false);
+        } else {
+            if (mBluetoothAdapter.isEnabled()) {
+                callback.invoke(true);
+            }
+            else {
+                boolean status = mBluetoothAdapter.enable();
+                callback.invoke(status);
+            }
+        }
+    }
     /**
      * This method makes the call to the printer and send the images to the printer to print.
      * @param bitmap
      */
-    private void printPhotoFromExternal(final Bitmap bitmap, final boolean isBluetoothConnection, final String macAddress, final String ipAddress, final String portNumber, final Callback callback) {
+    private void printPhotoFromExternal(final Bitmap bitmap, final boolean isBluetoothConnection, final String macAddress, final String ipAddress, final String portNumber, final int copies, final Callback callback) {
 
         new Thread(new Runnable() {
             public void run() {
@@ -65,14 +82,22 @@ public class ZebraPrint extends ReactContextBaseJavaModule
                     ZebraPrinter printer = getPrinterStatus();
                     ZebraPrinterLinkOs linkOsPrinter = ZebraPrinterFactory.createLinkOsPrinter(printer);
                     PrinterStatus printerStatus = (linkOsPrinter != null) ? linkOsPrinter.getCurrentStatus() : printer.getCurrentStatus();
-                    /**
-                     * Best practices implementation to check the status of the printer is if ready or not and then send the image to print
-                     */
 
+                     //Best practices implementation to check the status of the printer is if ready or not and then send the image to print
                     if (printerStatus.isReadyToPrint) {
                         try {
                             helper.showLoadingDialog("Printer Ready \nProcessing to print");
-                            printer.printImage(new ZebraImageAndroid(bitmap), 0, 0, /*bitmap.getWidth()*/700, /*bitmap.getHeight()*/550, false);
+
+                            //image - the image to be printed.
+                            //x - horizontal starting position in dots.
+                            //y - vertical starting position in dots.
+                            //width - desired width of the printed image. Passing a value less than 1 will preserve original width.
+                            //height - desired height of the printed image. Passing a value less than 1 will preserve original height.
+                            //insideFormat - boolean value indicating whether this image should be printed by itself (false), or is part of a format being written to the connection (true).
+
+                            for(int i=0; i<copies; i++) {
+                                printer.printImage(new ZebraImageAndroid(bitmap), 0, 0, 700, 550, false);
+                            }
 
                             callback.invoke(true);
                         } catch (ConnectionException e) {
@@ -98,13 +123,11 @@ public class ZebraPrint extends ReactContextBaseJavaModule
                     bitmap.recycle();
                     helper.dismissLoadingDialog();
                     Looper.myLooper().quit();
-
                 }
             }
-
         }).start();
-
     }
+
 
     /**
      * This method checks the mode of connection.
@@ -133,6 +156,7 @@ public class ZebraPrint extends ReactContextBaseJavaModule
         final String printerLanguage = SGD.GET("device.languages", mConnection);
 
         final String displayPrinterLanguage = "Printer Language is " + printerLanguage;
+        System.out.println("displayPrinterLanguage "+displayPrinterLanguage);
 
         SGD.SET("device.languages", "hybrid_xml_zpl", mConnection);
 

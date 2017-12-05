@@ -13,7 +13,7 @@
  * ALL RIGHTS RESERVED
  * *********************************************
  */
-package com.harvestmarkpti_poc.helperclasses;
+package com.yotta.harvestmark.ptipoc.helperclasses;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -22,7 +22,8 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.widget.TextView;
 
-import com.harvestmarkpti_poc.R;
+import com.yotta.harvestmark.ptipoc.R;
+
 
 /**
  * @author mlim3 This class handles the display of dialogs.
