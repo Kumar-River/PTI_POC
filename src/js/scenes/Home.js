@@ -10,9 +10,11 @@ import moment from 'moment';
 import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-native-simple-radio-button';
 
 import GTINDBList from '../utils/GTINDB';
+import EventObj from '../utils/EventObj';
 
 var {ZebraPrint, LabelViewManager} = NativeModules;
 var mGTINList;
+var mItemNoDescSeperator = ' - ';
 var mSelectedGTINArray;
 const mDateTypeList = [{value:"Pack Date"}, {value:"Harvest Date"}, {value:"Best By"}, {value:"Sell By"}, {value:"Use By"}, {value:"None"}];
 const mRadioDateFormatData = [{label: 'MM/DD/YYYY \n Eg: 08/24/2015', value: 'MM/DD/YYYY' }, {label: 'DD/MMM/YYYY \n Eg: 24/AUG/2015', value: 'DD/MMM/YYYY' }];
@@ -74,12 +76,12 @@ export default class Home extends Component {
                     data={this.state.sDescriptions}
                     value={this.state.sSelectedDesc}
                     onChangeText={(item) => this.onDescriptionSelected(item)}/>
-                  {/*<TextField
+                  <TextField
                     style={styles.textinput}
                     label={strings.itemNumberFilter}
                     keyboardType='numeric'
                     value={this.state.sItemNumber}
-                    onChangeText={sItemNumber => this.setState({sItemNumber})}/>*/}
+                    onChangeText={(text)=> this.onItemNumberFilterChange(text)}/>
                   <Dropdown
                     label={strings.commodityFilter}
                     data={this.state.sCommodityList}
@@ -210,6 +212,8 @@ export default class Home extends Component {
   onGTINItemSelected = (item) => {
     this.setState({sSelectedGS1PrefixName: item}, function(){
       
+      this.setState({sItemNumber:''});
+
       var selectedGS1PrefixName = this.state.sSelectedGS1PrefixName;
       mSelectedGTINArray = _.filter(GTINDBList.GTINRecords.GTINRecord, function(item){return item.GS1PrefixName == selectedGS1PrefixName});
 
@@ -217,7 +221,7 @@ export default class Home extends Component {
       var packLine7List = _.map(_.uniq(_.map(mSelectedGTINArray, 'PackLine7')));
       var countryofOriginGDSNList = _.map(_.uniq(_.map(mSelectedGTINArray, 'CountryofOriginGDSN')));
       var gradeList = _.map(_.uniq(_.map(mSelectedGTINArray, 'Grade')));
-      this.setState({sDescriptions : _.map(_.uniq(_.map(mSelectedGTINArray, 'Description')), function(item){return {"value":item}})});
+      this.setState({sDescriptions : _.map(_.uniq(_.map(mSelectedGTINArray, function(obj){return obj.ItemNo+mItemNoDescSeperator+obj.Description})), function(item){return {"value":item}})});
       this.setState({sCommodityList : _.map(_.uniq(_.map(mSelectedGTINArray, 'Commodity')), function(item){return {"value":item}})});
       this.setState({sVarietyList : _.map(_.uniq(_.map(mSelectedGTINArray, 'Variety')), function(item){return {"value":item}})}, function(){
         
@@ -239,6 +243,7 @@ export default class Home extends Component {
     this.setState({sSelectedDesc: item});
 
     var selectedDescName = this.state.sSelectedDesc;
+    selectedDescName = selectedDescName.substr(selectedDescName.indexOf(mItemNoDescSeperator)+mItemNoDescSeperator.length);
     var filteredGTINArrayByDesc = _.filter(mSelectedGTINArray, function(item){return item.Description == selectedDescName});
 
     var GTINs = _.map(_.uniq(_.map(filteredGTINArrayByDesc, 'GTIN')));
@@ -269,7 +274,7 @@ export default class Home extends Component {
     var packLine7List = _.map(_.uniq(_.map(filteredGTINArrayByCommodity, 'PackLine7')));
     var countryofOriginGDSNList = _.map(_.uniq(_.map(filteredGTINArrayByCommodity, 'CountryofOriginGDSN')));
     var gradeList = _.map(_.uniq(_.map(filteredGTINArrayByCommodity, 'Grade')));
-    this.setState({sDescriptions : _.map(_.map(filteredGTINArrayByCommodity, 'Description'), function(item){return {"value":item}})});
+    this.setState({sDescriptions : _.map(_.map(filteredGTINArrayByCommodity,  function(obj){return obj.ItemNo+mItemNoDescSeperator+obj.Description}), function(item){return {"value":item}})});
     this.setState({sVarietyList : _.map(_.map(filteredGTINArrayByCommodity, 'Variety'), function(item){return {"value":item}})}, function(){
 
       this.setState({sSelectedGTIN : GTINs[0]});
@@ -294,7 +299,7 @@ export default class Home extends Component {
     var packLine7List = _.map(_.uniq(_.map(filteredGTINArrayByVariety, 'PackLine7')));
     var countryofOriginGDSNList = _.map(_.uniq(_.map(filteredGTINArrayByVariety, 'CountryofOriginGDSN')));
     var gradeList = _.map(_.uniq(_.map(filteredGTINArrayByVariety, 'Grade')));
-    this.setState({sDescriptions : _.map(_.map(filteredGTINArrayByVariety, 'Description'), function(item){return {"value":item}})});
+    this.setState({sDescriptions : _.map(_.map(filteredGTINArrayByVariety,  function(obj){return obj.ItemNo+mItemNoDescSeperator+obj.Description}), function(item){return {"value":item}})});
     var commodityList = _.map(_.map(filteredGTINArrayByVariety, 'Commodity'), function(item){return {"value":item}});
 
     this.setState({sSelectedGTIN : GTINs[0]});
@@ -305,6 +310,48 @@ export default class Home extends Component {
     this.setState({sSelectedCommodity: commodityList[0].value}, function(){
 
       this.setCODE128BarCodeValue();
+    });
+  }
+
+  onItemNumberFilterChange = (text) => {
+    this.setState({sItemNumber: this.getNumberFromText(text)}, function(){
+
+      var selectedGS1PrefixName = this.state.sSelectedGS1PrefixName;
+      var enteredItemNumber = this.state.sItemNumber;
+      mSelectedGTINArrayWithItemNumber = _.filter(GTINDBList.GTINRecords.GTINRecord, function(item){return item.GS1PrefixName == selectedGS1PrefixName && (enteredItemNumber.trim().length > 0 ? item.ItemNo == enteredItemNumber : true)});
+
+      var GTINs = _.map(_.uniq(_.map(mSelectedGTINArrayWithItemNumber, 'GTIN')));
+      var packLine7List = _.map(_.uniq(_.map(mSelectedGTINArrayWithItemNumber, 'PackLine7')));
+      var countryofOriginGDSNList = _.map(_.uniq(_.map(mSelectedGTINArrayWithItemNumber, 'CountryofOriginGDSN')));
+      var gradeList = _.map(_.uniq(_.map(mSelectedGTINArrayWithItemNumber, 'Grade')));
+      this.setState({sDescriptions : _.map(_.uniq(_.map(mSelectedGTINArrayWithItemNumber,  function(obj){return obj.ItemNo+mItemNoDescSeperator+obj.Description})), function(item){return {"value":item}})});
+      this.setState({sCommodityList : _.map(_.uniq(_.map(mSelectedGTINArrayWithItemNumber, 'Commodity')), function(item){return {"value":item}})});
+      this.setState({sVarietyList : _.map(_.uniq(_.map(mSelectedGTINArrayWithItemNumber, 'Variety')), function(item){return {"value":item}})}, function(){
+
+        if (mSelectedGTINArrayWithItemNumber.length > 0) {
+          this.setState({sSelectedGTIN : GTINs[0]});
+          this.setState({sSelectedPackLine7 : packLine7List[0]});
+          this.setState({sSelectedCountryofOriginGDSN: countryofOriginGDSNList[0]});
+          this.setState({sSelectedGrade : gradeList[0]});
+          this.setState({sSelectedDesc: (this.state.sDescriptions)[0].value});
+          this.setState({sSelectedCommodity:(this.state.sCommodityList)[0].value});
+          this.setState({sSelectedVariety:(this.state.sVarietyList)[0].value}, function(){
+            this.setCODE128BarCodeValue();
+          });
+        }
+        else {
+          this.setState({sSelectedGTIN : ''});
+          this.setState({sSelectedPackLine7 : ''});
+          this.setState({sSelectedCountryofOriginGDSN: ''});
+          this.setState({sSelectedGrade : ''});
+          this.setState({sSelectedDesc: ''});
+          this.setState({sSelectedCommodity: ''});
+          this.setState({sSelectedVariety: ''}, function(){
+            this.setCODE128BarCodeValue();
+          });
+        }
+      });
+
     });
   }
 
@@ -373,6 +420,12 @@ export default class Home extends Component {
   }
 
   onQuantityToPrintChange = (text) => {
+    this.setState({sQuantityToPrint: this.getNumberFromText(text)}, function(){
+      this.validateForm();
+    });
+  }
+
+  getNumberFromText(text){
     let newText = '';
     let numbers = '0123456789';
 
@@ -380,10 +433,8 @@ export default class Home extends Component {
         if ( numbers.indexOf(text[i]) > -1 ) {
             newText = newText + text[i];
         }
-    }   
-    this.setState({sQuantityToPrint: newText}, function(){
-      this.validateForm();
-    });   
+    }
+    return newText;
   }
   
   showDatePicker = async() => {
@@ -478,8 +529,6 @@ export default class Home extends Component {
     else {
       this.printTheLabel(isBluetooth);
     }
-
-    
   }
 
   printTheLabel(isBluetooth) {
@@ -487,7 +536,32 @@ export default class Home extends Component {
     ZebraPrint.printLabel(isBluetooth, this.state.sMacAddress, this.state.sIpAddress, this.state.sPort, this.state.sQuantityToPrint, (isPrintSuccess) => {
 
       console.log('isPrintSuccess '+isPrintSuccess);
+      this.generateEventJSON();
     });
+  }
+
+  generateEventJSON() {
+    var selectedGTIN = this.state.sSelectedGTIN;
+    var filteredGTINArrayByGTIN = _.filter(mSelectedGTINArray, function(item){return item.GTIN == selectedGTIN});
+
+    var newAttribute = _.merge({}, EventObj.PTIEvent.Attributes.Attribute, filteredGTINArrayByGTIN[0]);
+
+    newAttribute.Lot = this.state.sLotNumber;
+    newAttribute.GrowingRegion = this.state.sGrowingRegion;
+    newAttribute.City = this.state.sCity;
+    newAttribute.State = this.state.sState;
+    newAttribute.PrintLabel = "4X2RPC";
+    newAttribute.QuantityofLabelsPrinted = this.state.sQuantityToPrint;
+    newAttribute[this.state.sSelectedDateType] = this.state.sSelectedDate;
+
+    var finalEventObj = EventObj;
+    finalEventObj.PTIEvent.Attributes.Attribute = newAttribute;
+
+    console.log('finalEventObj '+JSON.stringify(finalEventObj));
+
+    this.props.navigator.push({screen: 'Home'});//To fix white background issue on Event page.
+    this.props.navigator.replace({screen: 'Event', eventObj: finalEventObj});
+
   }
 }
 

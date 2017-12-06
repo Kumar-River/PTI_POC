@@ -10,6 +10,7 @@ import NavigationExperimental from 'react-native-deprecated-custom-components';
 
 import Splash from './Splash';
 import Home from './Home';
+import Event from './Event';
 
 var mNavigator;
 
@@ -26,7 +27,7 @@ export default class App extends Component<{}> {
     return (
       <NavigationExperimental.Navigator
           initialRoute={{screen: 'Splash'}}
-          configureScene={(route, routeStack) => NavigationExperimental.Navigator.SceneConfigs.FloatFromBottom}
+          configureScene={(route, routeStack) => NavigationExperimental.Navigator.SceneConfigs.FloatFromRight}
           renderScene={(route, nav) => {return this.renderScene(route, nav)}}/>
     );
   }
@@ -38,6 +39,8 @@ export default class App extends Component<{}> {
           return <Splash navigator={nav}/>
         case "Home":
           return <Home navigator={nav} />
+        case "Event":
+          return <Event navigator={nav} eventObj={route.eventObj}/>
       }
   }
 }
