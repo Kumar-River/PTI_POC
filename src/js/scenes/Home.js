@@ -50,7 +50,7 @@ export default class Home extends Component {
       return (
         <DrawerLayoutAndroid
           ref="drawer"
-          drawerWidth={600}
+          drawerWidth={500}
           renderNavigationView={() =>
             <View style={styles.menuContainer}>
               <Image source={require("../../res/images/logo.png")} />
@@ -78,11 +78,13 @@ export default class Home extends Component {
                     value={this.state.sSelectedDesc}
                     onChangeText={(item) => this.onDescriptionSelected(item)}/>
                   <TextField
+                    ref='itemNo'
                     style={styles.textinput}
                     label={strings.itemNumberFilter}
                     keyboardType='numeric'
                     value={this.state.sItemNumber}
-                    onChangeText={(text)=> this.onItemNumberFilterChange(text)}/>
+                    onChangeText={(text)=> this.onItemNumberFilterChange(text)}
+                    onSubmitEditing={(event) => {this.refs.lotmNo.focus();}}/>
                   <Dropdown
                     label={strings.commodityFilter}
                     data={this.state.sCommodityList}
@@ -94,10 +96,12 @@ export default class Home extends Component {
                     value={this.state.sSelectedVariety}
                     onChangeText={(item) => this.onVarietySelected(item)}/>
                   <TextField
+                    ref='lotmNo'
                     style={styles.textinput}
                     label={strings.lotNumber}
                     value={this.state.sLotNumber}
-                    onChangeText={(value) => this.onLotNumberChanged(value)}/>
+                    onChangeText={(value) => this.onLotNumberChanged(value)}
+                    onSubmitEditing={(event) => {(this.state.sSelectedPrinterConnectionType == BLUETOOTH) ? this.refs.macAddress.focus() : this.refs.ipAddress.focus();}}/>
                   <View style={styles.dateView}>
                     <Dropdown
                       containerStyle={{flex:1}}
@@ -120,23 +124,7 @@ export default class Home extends Component {
                     labelHorizontal={true}
                     buttonColor={'#2196f3'}
                     onPress={(value) => {this.onDateFormatChanged(value)}}/>*/}
-
-                  <TextField
-                    style={styles.textinput}
-                    label={strings.growingRegion}
-                    value={this.state.sGrowingRegion}
-                    onChangeText={sGrowingRegion => this.setState({sGrowingRegion})}/>
-                  <TextField
-                    style={styles.textinput}
-                    label={strings.city}
-                    value={this.state.sCity}
-                    onChangeText={sCity => this.setState({sCity})}/>
-                  <TextField
-                    style={styles.textinput}
-                    label={strings.state}
-                    value={this.state.sState}
-                    onChangeText={sState => this.setState({sState})}/>
-                  
+                                    
                 </View>
 
                 <View style={styles.contentViewColumn2}>
@@ -155,45 +143,73 @@ export default class Home extends Component {
                     onPress={(value) => {this.onPrinterConnectionTypeChanged(value)}}/>
                   {(this.state.sSelectedPrinterConnectionType == BLUETOOTH) ?
                     <TextField
+                      ref='macAddress'
                       style={styles.textinput}
                       label={strings.macAddress}
                       value={this.state.sMacAddress}
-                      onChangeText={(value) => {this.onMacAddressChanged(value)}}/>
+                      onChangeText={(value) => {this.onMacAddressChanged(value)}}
+                      onSubmitEditing={(event) => {this.refs.growingRegion.focus();}}/>
                     :
                     <View style={{flexDirection:'row'}}>
                       <View style={{flex:1}}>
                         <TextField
+                          ref='ipAddress'
                           style={styles.textinput}
                           label={strings.ipAddress}
                           value={this.state.sIpAddress}
-                          onChangeText={(value) => {this.onIPAddressChanged(value)}}/>
+                          onChangeText={(value) => {this.onIPAddressChanged(value)}}
+                          onSubmitEditing={(event) => {this.refs.portNo.focus();}}/>
                       </View>
                       <View style={{flex:1, marginLeft:15}}>
                         <TextField
+                          ref='portNo'
                           style={styles.textinput}
                           label={strings.port}
                           value={this.state.sPort}
                           maxLength={5}
                           keyboardType='numeric'
-                          onChangeText={(value) => {this.onPortChanged(value)}}/>
+                          onChangeText={(value) => {this.onPortChanged(value)}}
+                          onSubmitEditing={(event) => {this.refs.growingRegion.focus();}}/>
                       </View>
                     </View>
                   }
 
                   <Text>{strings.labelPreview}</Text>
 
-                  <Image style={{width: 500, height: 300, resizeMode:'contain', borderWidth:1, borderColor:'#000000'}} source={{uri: this.state.sLabelPreviewBas64}}/>
+                  <Image style={{width: 400, height: 240, resizeMode:'contain', borderWidth:1, borderColor:'#000000'}} source={{uri: this.state.sLabelPreviewBas64}}/>
 
                 </View>
 
                 <View style={styles.contentViewColumn3}>
+
                   <TextField
+                    ref='growingRegion'
+                    style={styles.textinput}
+                    label={strings.growingRegion}
+                    value={this.state.sGrowingRegion}
+                    onChangeText={sGrowingRegion => this.setState({sGrowingRegion})}
+                    onSubmitEditing={(event) => {this.refs.city.focus();}}/>
+                  <TextField
+                    ref='city'
+                    style={styles.textinput}
+                    label={strings.city}
+                    value={this.state.sCity}
+                    onChangeText={sCity => this.setState({sCity})}
+                    onSubmitEditing={(event) => {this.refs.state.focus();}}/>
+                  <TextField
+                    ref='state'
+                    style={styles.textinput}
+                    label={strings.state}
+                    value={this.state.sState}
+                    onChangeText={sState => this.setState({sState})}
+                    onSubmitEditing={(event) => {this.refs.quantityToPrint.focus();}}/>
+                  <TextField
+                    ref='quantityToPrint'
                     style={styles.textinput}
                     label={strings.quantityToPrint}
                     keyboardType='numeric'
                     value={this.state.sQuantityToPrint}
                     onChangeText={(text)=> this.onQuantityToPrintChange(text)}/>
-
                   <RaisedTextButton 
                     style={styles.printBtn}
                     titleStyle={{fontSize:20}}
@@ -606,14 +622,14 @@ const styles = StyleSheet.create({
     padding: 10
   },
   contentViewColumn1:{
-    flex:1
+    flex:0.9
   },
   contentViewColumn2:{
     flex:1.5,
     marginLeft:15
   },
   contentViewColumn3:{
-    flex:0.8,
+    flex:0.9,
     marginLeft:15
   },
   textinput: {

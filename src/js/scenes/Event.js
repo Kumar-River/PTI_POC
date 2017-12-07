@@ -18,7 +18,7 @@ export default class Event extends Component {
 
 	    	<ScrollView>
 	  			<Text style={styles.eventText}>{JSON.stringify(this.props.eventObj)}</Text>
-	      	</ScrollView>
+	      </ScrollView>
 	    </View>
 	  );
 	}	
