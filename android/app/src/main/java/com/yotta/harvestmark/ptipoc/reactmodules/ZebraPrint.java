@@ -30,8 +30,9 @@ public class ZebraPrint extends ReactContextBaseJavaModule
 {
     private ReactApplicationContext mReactApplicationContext;
     private Connection mConnection;
-
     private ZebraPrintUIHelper helper;
+
+    private int mPrintLabelImageWidth = 800, mPrintLabelImageHeight = 550;
 
     public ZebraPrint(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -96,7 +97,7 @@ public class ZebraPrint extends ReactContextBaseJavaModule
                             //insideFormat - boolean value indicating whether this image should be printed by itself (false), or is part of a format being written to the connection (true).
 
                             for(int i=0; i<copies; i++) {
-                                printer.printImage(new ZebraImageAndroid(bitmap), 0, 0, 700, 550, false);
+                                printer.printImage(new ZebraImageAndroid(bitmap), 0, 0, mPrintLabelImageWidth, mPrintLabelImageHeight, false);
                             }
 
                             callback.invoke(true);

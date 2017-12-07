@@ -16,6 +16,7 @@
     <application
       android:name="com.yotta.harvestmark.ptipoc.MainApplication"
       android:allowBackup="true"
+
       android:label="@string/app_name"
       android:icon="@mipmap/ic_launcher"
       android:theme="@style/AppTheme">
@@ -23,6 +24,7 @@
         android:name="com.yotta.harvestmark.ptipoc.MainActivity"
         android:label="@string/app_name"
         android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+        android:screenOrientation="landscape"
         android:windowSoftInputMode="adjustResize">
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />

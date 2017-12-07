@@ -36,6 +36,9 @@ public class LabelViewManager  extends ReactContextBaseJavaModule
 {
     private static LabelViewManager mInstance;
     private View mLabelView;
+    private int mBarcodeWidth = 500, mBarcodeHeight = 50;
+    private int mDataMatrixCode_Wd_Ht = 100;
+    private String mDataMatrixCode = "123412341234HM01";
     private static final String KEY_BARCODE_VALUE = "barcodevalue", KEY_GTIN_NUMBER_LBL = "GTINNumberLbl",
             KEY_LOT_NUMBER_LBL = "lotNumberLbl", KEY_COMMODITY = "commodity", KEY_VARIETY = "variety",
             KEY_PACKLINE7 = "packLine7", KEY_DATE_TYPE = "dateType", KEY_COUNTRY_OF_ORIGIN = "countryOfOrigin",
@@ -97,7 +100,7 @@ public class LabelViewManager  extends ReactContextBaseJavaModule
 
         if(labelValues.hasKey(KEY_BARCODE_VALUE)){
             ImageView mIvBarCode = (ImageView)getLabelView().findViewById(R.id.xIvBarcode);
-            mIvBarCode.setImageBitmap(getCODE128BarcodeBitmap(labelValues.getString(KEY_BARCODE_VALUE), 400, 50));
+            mIvBarCode.setImageBitmap(getCODE128BarcodeBitmap(labelValues.getString(KEY_BARCODE_VALUE), mBarcodeWidth, mBarcodeHeight));
         }
 
         if(labelValues.hasKey(KEY_GTIN_NUMBER_LBL)){
@@ -145,7 +148,7 @@ public class LabelViewManager  extends ReactContextBaseJavaModule
 
         ImageView mIvDataMatrixCode = (ImageView) getLabelView().findViewById(R.id.xIvDataMatrixCode);
         if (mIvDataMatrixCode.getDrawable() == null){
-            mIvDataMatrixCode.setImageBitmap(getDataMatrixBarcode("123412341234HM01", 100, 100));
+            mIvDataMatrixCode.setImageBitmap(getDataMatrixBarcode(mDataMatrixCode, mDataMatrixCode_Wd_Ht, mDataMatrixCode_Wd_Ht));
         }
 
         getLabelBase64(callback);

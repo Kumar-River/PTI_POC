@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, View, Text, Image, DrawerLayoutAndroid, TouchableOpacity, DatePickerAndroid, ScrollView, NativeModules } from 'react-native';
+import { StyleSheet, View, Text, Image, DrawerLayoutAndroid, TouchableOpacity, DatePickerAndroid, ScrollView, ToastAndroid, NativeModules } from 'react-native';
 
 import { Button, RaisedTextButton } from 'react-native-material-buttons';
 import LocalizedStrings from 'react-native-localization';
@@ -18,11 +18,11 @@ var mItemNoDescSeperator = ' - ';
 var mSelectedGTINArray;
 const mDateTypeList = [{value:"Pack Date"}, {value:"Harvest Date"}, {value:"Best By"}, {value:"Sell By"}, {value:"Use By"}, {value:"None"}];
 const mRadioDateFormatData = [{label: 'MM/DD/YYYY \n Eg: 08/24/2015', value: 'MM/DD/YYYY' }, {label: 'DD/MMM/YYYY \n Eg: 24/AUG/2015', value: 'DD/MMM/YYYY' }];
+const mSelectedDateToLabelFormat = 'MMMDD';
 const BLUETOOTH = 0, IP_DNS = 1;
 const mRadioPrintConnectionTypes = [{label:'Bluetooth', value:BLUETOOTH}, {label:'IP/DNS', value:IP_DNS}];
 var KEYS = { BARCODE_VALUE:"barcodevalue", GTIN_NUMBER_LBL:"GTINNumberLbl", LOT_NUMBER_LBL:"lotNumberLbl", COMMODITY:"commodity", 
                 VARIETY:"variety", PACKLINE7:"packLine7", DATE_TYPE:"dateType", COUNTRY_OF_ORIGIN:"countryOfOrigin", GRADE:"grade", DATE:"date"};
-
 
 export default class Home extends Component {
 
@@ -30,7 +30,7 @@ export default class Home extends Component {
       super(props);
       
       this.state = {sSelectedGS1PrefixName:'', sDescriptions:[], sCommodityList:[], sVarietyList:[], sSelectedGTIN:'',sSelectedDesc:'', sItemNumber:'', sSelectedCommodity:'', sSelectedVariety:'',
-                    sLotNumber:'', sSelectedDateType:'', sSelectedDate: this.getFormatedDate(new Date(), mRadioDateFormatData[0].value), sSelectedDateFormat:mRadioDateFormatData[0].value,
+                    sLotNumber:'', sSelectedDateType:'', sSelectedDate: this.getFormatedDate(new Date(), mRadioDateFormatData[0].value), sSelectedDateToLabel: this.getFormatedDate(new Date(), mSelectedDateToLabelFormat).toUpperCase(), sSelectedDateFormat:mRadioDateFormatData[0].value,
                     sGrowingRegion:'', sCity:'', sState:'', sBarcodeValue:'', sLabelGTINValueLbl:'', sLabelLotNumberLbl:'', sSelectedPackLine7:'', sSelectedCountryofOriginGDSN:'', 
                     sSelectedGrade:'', sQuantityToPrint:'', isFormInValid:true, sLabelPreviewBas64:' ', sSelectedPrinterConnectionType:BLUETOOTH,
                     sMacAddress:'', sIpAddress:'', sPort:'9100', isPrinterDataEntered: false};
@@ -52,8 +52,9 @@ export default class Home extends Component {
           ref="drawer"
           drawerWidth={600}
           renderNavigationView={() =>
-
-            <Text>Menu</Text>
+            <View style={styles.menuContainer}>
+              <Image source={require("../../res/images/logo.png")} />
+            </View>
           }>
           <View style={styles.container}>
             <View style={styles.titlebar}>
@@ -95,7 +96,6 @@ export default class Home extends Component {
                   <TextField
                     style={styles.textinput}
                     label={strings.lotNumber}
-                    keyboardType='numeric'
                     value={this.state.sLotNumber}
                     onChangeText={(value) => this.onLotNumberChanged(value)}/>
                   <View style={styles.dateView}>
@@ -113,12 +113,14 @@ export default class Home extends Component {
                         value={this.state.sSelectedDate}/>
                     </TouchableOpacity>
                   </View>
-                  <RadioForm
+
+                  {/*<RadioForm
                     radio_props={mRadioDateFormatData}
                     formHorizontal={true}
                     labelHorizontal={true}
                     buttonColor={'#2196f3'}
-                    onPress={(value) => {this.onDateFormatChanged(value)}}/>
+                    onPress={(value) => {this.onDateFormatChanged(value)}}/>*/}
+
                   <TextField
                     style={styles.textinput}
                     label={strings.growingRegion}
@@ -369,7 +371,7 @@ export default class Home extends Component {
     });
   }
 
-  onDateFormatChanged = (value) => {
+  /*onDateFormatChanged = (value) => {
     var previousFormat = this.state.sSelectedDateFormat;
 
     this.setState({sSelectedDateFormat: value}, function(){
@@ -379,7 +381,7 @@ export default class Home extends Component {
         this.updateLabelPreview(labelValues);
       });
     });
-  }
+  }*/
 
   onPrinterConnectionTypeChanged = (value) => {
     this.setState({sSelectedPrinterConnectionType:value}, function(){
@@ -445,9 +447,11 @@ export default class Home extends Component {
 
       if(action == DatePickerAndroid.dateSetAction) {          
         // Selected year, month (0-11), day
-        this.setState({sSelectedDate: this.getFormatedDate(new Date(year, month, day), this.state.sSelectedDateFormat)}, function(){
+        
+        this.setState({sSelectedDate: this.getFormatedDate(new Date(year, month, day), this.state.sSelectedDateFormat)});
+        this.setState({sSelectedDateToLabel: this.getFormatedDate(new Date(year, month, day), mSelectedDateToLabelFormat).toUpperCase()}, function(){
 
-          var labelValues = {[KEYS.DATE]: this.state.sSelectedDate};
+          var labelValues = {[KEYS.DATE]: this.state.sSelectedDateToLabel};
           this.updateLabelPreview(labelValues);
         });
       }
@@ -484,7 +488,7 @@ export default class Home extends Component {
                         [KEYS.DATE_TYPE]: this.state.sSelectedDateType,
                         [KEYS.COUNTRY_OF_ORIGIN]: this.state.sSelectedCountryofOriginGDSN,
                         [KEYS.GRADE]: this.state.sSelectedGrade,
-                        [KEYS.DATE]: this.state.sSelectedDate
+                        [KEYS.DATE]: this.state.sSelectedDateToLabel
                       };
 
       this.updateLabelPreview(labelValues);
@@ -523,6 +527,7 @@ export default class Home extends Component {
         }
         else {
           console.log('not Enabled');
+          ToastAndroid.show('Unable to enable the Bluetooth on the device.', ToastAndroid.SHORT);
         }
       });
     }
@@ -545,7 +550,6 @@ export default class Home extends Component {
     var filteredGTINArrayByGTIN = _.filter(mSelectedGTINArray, function(item){return item.GTIN == selectedGTIN});
 
     var newAttribute = _.merge({}, EventObj.PTIEvent.Attributes.Attribute, filteredGTINArrayByGTIN[0]);
-
     newAttribute.Lot = this.state.sLotNumber;
     newAttribute.GrowingRegion = this.state.sGrowingRegion;
     newAttribute.City = this.state.sCity;
@@ -557,7 +561,14 @@ export default class Home extends Component {
     var finalEventObj = EventObj;
     finalEventObj.PTIEvent.Attributes.Attribute = newAttribute;
 
-    console.log('finalEventObj '+JSON.stringify(finalEventObj));
+    finalEventObj.PTIEvent.Codes.devicename = 'Android';
+    finalEventObj.PTIEvent.Codes.timestamp = new Date();
+    finalEventObj.PTIEvent.Codes.value = '123412341234HM01';
+
+    var date = new Date();
+    finalEventObj.PTIEvent.EventTime = date;
+    //finalEventObj.PTIEvent.EventTimeZoneOffset = date.getTimezoneOffset() / 60;
+    finalEventObj.PTIEvent.ProcessTime = new Date();
 
     this.props.navigator.push({screen: 'Home'});//To fix white background issue on Event page.
     this.props.navigator.replace({screen: 'Event', eventObj: finalEventObj});
@@ -568,6 +579,12 @@ export default class Home extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF'
+  },
+  menuContainer:{
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF'
   },
   titlebar:{
