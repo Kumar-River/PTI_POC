@@ -3,6 +3,8 @@ import { StyleSheet, View, Image} from 'react-native';
 
 import Home from './Home';
 
+//Released Staging version 1.0
+
 export default class Splash extends Component {
 
 	componentWillMount() {
