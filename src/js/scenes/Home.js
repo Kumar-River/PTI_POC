@@ -5,12 +5,14 @@ import { Button, RaisedTextButton } from 'react-native-material-buttons';
 import LocalizedStrings from 'react-native-localization';
 import { Dropdown } from 'react-native-material-dropdown';
 import { TextField } from 'react-native-material-textfield';
+import Voice from 'react-native-voice';
 import _ from 'lodash'
 import moment from 'moment';
 import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-native-simple-radio-button';
 
 import GTINDBList from '../utils/GTINDB';
 import EventObj from '../utils/EventObj';
+import Messages from  '../utils/Messages';
 
 var {ZebraPrint, LabelViewManager} = NativeModules;
 var mGTINList;
@@ -23,6 +25,7 @@ const BLUETOOTH = 0, IP_DNS = 1;
 const mRadioPrintConnectionTypes = [{label:'Bluetooth', value:BLUETOOTH}, {label:'IP/DNS', value:IP_DNS}];
 var KEYS = { BARCODE_VALUE:"barcodevalue", GTIN_NUMBER_LBL:"GTINNumberLbl", LOT_NUMBER_LBL:"lotNumberLbl", COMMODITY:"commodity", 
                 VARIETY:"variety", PACKLINE7:"packLine7", DATE_TYPE:"dateType", COUNTRY_OF_ORIGIN:"countryOfOrigin", GRADE:"grade", DATE:"date"};
+const gtinVoiceRegKey='gtin', commodityVoiceRegKey='commodity', varietyVoiceRegKey='variety', lotNumberVoiceRegKey='lot number', growingRegionVoiceRegKey='growing region', cityVoiceRegKey='city', stateVoiceRegKey='state', quantityToPrintVoiceRegKey='quantity to print', itemNumberVoiceRegKey='item number', printVoiceRegKey='print';
 
 export default class Home extends Component {
 
@@ -36,6 +39,16 @@ export default class Home extends Component {
                     sMacAddress:'', sIpAddress:'', sPort:'9100', isPrinterDataEntered: false};
 
       mGTINList = _.map(_.uniq(_.map(GTINDBList.GTINRecords.GTINRecord, "GS1PrefixName")), function(item){return {"value":item}});
+
+      //Start of Voice callback method initializations
+      Voice.onSpeechStart = this.onSpeechStart.bind(this);
+      Voice.onSpeechRecognized = this.onSpeechRecognized.bind(this);
+      Voice.onSpeechEnd = this.onSpeechEnd.bind(this);
+      Voice.onSpeechError = this.onSpeechError.bind(this);
+      Voice.onSpeechResults = this.onSpeechResults.bind(this);
+      Voice.onSpeechPartialResults = this.onSpeechPartialResults.bind(this);
+      Voice.onSpeechVolumeChanged = this.onSpeechVolumeChanged.bind(this);
+      //End of Voice callback method initializations
     }
 
   componentWillMount() {
@@ -44,6 +57,10 @@ export default class Home extends Component {
     }
 
     this.setState({sSelectedDateType: mDateTypeList[0].value});    
+  }
+
+  componentWillUnmount() {
+    Voice.destroy().then(Voice.removeAllListeners);
   }
 
 	render() {    
@@ -67,11 +84,17 @@ export default class Home extends Component {
             <ScrollView>
               <View style={styles.contentView}>
                 <View style={styles.contentViewColumn1}>
-                  <Dropdown
-                    label={strings.gtinList}
-                    data={mGTINList}
-                    value={this.state.sSelectedGS1PrefixName}
-                    onChangeText={(item) => this.onGTINItemSelected(item)}/>
+                  <View style={styles.rowView}>
+                    <Dropdown
+                      containerStyle={{flex:1}}
+                      label={strings.gtinList}
+                      data={mGTINList}
+                      value={this.state.sSelectedGS1PrefixName}
+                      onChangeText={(item) => this.onGTINItemSelected(item)}/>
+                    <Button color='transparent' onPress={this.startRecognizing.bind(this)}>
+                      <Image source={require("../../res/images/ic_mic.png")} />
+                    </Button>  
+                  </View>
                   <Dropdown
                     label={strings.description}
                     data={this.state.sDescriptions}
@@ -102,7 +125,7 @@ export default class Home extends Component {
                     value={this.state.sLotNumber}
                     onChangeText={(value) => this.onLotNumberChanged(value)}
                     onSubmitEditing={(event) => {(this.state.sSelectedPrinterConnectionType == BLUETOOTH) ? this.refs.macAddress.focus() : this.refs.ipAddress.focus();}}/>
-                  <View style={styles.dateView}>
+                  <View style={styles.rowView}>
                     <Dropdown
                       containerStyle={{flex:1}}
                       label={strings.date}
@@ -150,7 +173,7 @@ export default class Home extends Component {
                       onChangeText={(value) => {this.onMacAddressChanged(value)}}
                       onSubmitEditing={(event) => {this.refs.growingRegion.focus();}}/>
                     :
-                    <View style={{flexDirection:'row'}}>
+                    <View style={styles.rowView}>
                       <View style={{flex:1}}>
                         <TextField
                           ref='ipAddress'
@@ -210,7 +233,7 @@ export default class Home extends Component {
                     keyboardType='numeric'
                     value={this.state.sQuantityToPrint}
                     onChangeText={(text)=> this.onQuantityToPrintChange(text)}/>
-                  <RaisedTextButton 
+                  <RaisedTextButton
                     style={styles.printBtn}
                     titleStyle={{fontSize:20}}
                     title={strings.print}
@@ -283,7 +306,9 @@ export default class Home extends Component {
   }
 
   onCommoditySelected = (item) => {
+    console.log("inside onCommoditySelected")
     this.setState({sSelectedCommodity: item});
+    console.log("sSelectedCommodity "+this.state.sSelectedCommodity);
 
     var selectedCommodityName = this.state.sSelectedCommodity; 
     var filteredGTINArrayByCommodity = _.filter(mSelectedGTINArray, function(item){return item.Commodity == selectedCommodityName});
@@ -543,7 +568,7 @@ export default class Home extends Component {
         }
         else {
           console.log('not Enabled');
-          ToastAndroid.show('Unable to enable the Bluetooth on the device.', ToastAndroid.SHORT);
+          ToastAndroid.show(Messages.bluetoothEnableErrorMsg, ToastAndroid.SHORT);
         }
       });
     }
@@ -590,6 +615,185 @@ export default class Home extends Component {
     this.props.navigator.replace({screen: 'Event', eventObj: finalEventObj});
 
   }
+
+  //Start of Voice input 
+  onSpeechStart(e) {
+    
+  }
+
+  onSpeechRecognized(e) {
+    
+  }
+
+  onSpeechEnd(e) {
+    
+  }
+
+  onSpeechError(e) {
+    ToastAndroid.show(e.error.message, ToastAndroid.SHORT);
+  }
+    
+  onSpeechResults(e) {
+
+    var results = e.value;
+    results = results.map(v => v.toLowerCase());
+    console.log("results "+results);
+    
+    if (results.length > 0) {
+
+      var keyMatchedResults = [];
+      
+        //Start of Commodity
+        keyMatchedResults = this.getKeyMatchedResults(results, commodityVoiceRegKey);
+        if (keyMatchedResults.length > 0) {
+          var commodityNamesInLowerCase = _.map(_.map(this.state.sCommodityList, 'value'), function(item){return item.toLowerCase().trim()})
+          for(var i=0; i<keyMatchedResults.length; i++){
+            var firstMatchedResult = keyMatchedResults[i];
+            var recognizedCommodity = firstMatchedResult.substr(firstMatchedResult.indexOf(commodityVoiceRegKey)+commodityVoiceRegKey.length).trim();
+            const matchedCommodities = this.getKeyMatchedResults(commodityNamesInLowerCase, recognizedCommodity);
+            if (matchedCommodities.length > 0) {
+              var commodityInRightCase = _.filter(_.map(this.state.sCommodityList, 'value'), function(item){ 
+                if(item.toLowerCase().trim() == matchedCommodities[0])
+                  return item;
+              });
+
+              console.log('commodityInRightCase '+commodityInRightCase);
+              this.onCommoditySelected(commodityInRightCase[0]);
+              break;
+            }
+          }
+          return;          
+        }
+        //End of Commodity
+
+        //Start of Variety
+        keyMatchedResults = this.getKeyMatchedResults(results, varietyVoiceRegKey);
+        if (keyMatchedResults.length > 0) {
+          var varietyNamesInLowerCase = _.map(_.map(this.state.sVarietyList, 'value'), function(item){return item.toLowerCase().trim()})
+          for(var i=0; i<keyMatchedResults.length; i++){
+            var firstMatchedResult = keyMatchedResults[i];
+            var recognizedVariety = firstMatchedResult.substr(firstMatchedResult.indexOf(varietyVoiceRegKey)+varietyVoiceRegKey.length).trim();
+            const matchedmatchedVarieties = this.getKeyMatchedResults(varietyNamesInLowerCase, recognizedVariety);
+            if (matchedmatchedVarieties.length > 0) {
+              var varietyInRightCase = _.filter(_.map(this.state.sVarietyList, 'value'), function(item){ 
+                if(item.toLowerCase().trim() == matchedmatchedVarieties[0])
+                  return item;
+              });
+
+              console.log('varietyInRightCase '+varietyInRightCase);
+              this.onVarietySelected(varietyInRightCase[0]);
+              break;
+            }
+          }
+          return;          
+        }
+        //End of Variety
+
+        //Start of Lot Number
+        keyMatchedResults = this.getKeyMatchedResults(results, lotNumberVoiceRegKey);
+        if (keyMatchedResults.length > 0) {
+          var firstMatchedResult = keyMatchedResults[0];
+          var recognizedLotNumber = firstMatchedResult.substr(firstMatchedResult.indexOf(lotNumberVoiceRegKey)+lotNumberVoiceRegKey.length);
+          this.onLotNumberChanged(this.capitalizeFirstLetter(recognizedLotNumber));
+          return;
+        }
+        //End of Lot Number
+
+        //Start of Growing Region
+        keyMatchedResults = this.getKeyMatchedResults(results, growingRegionVoiceRegKey);
+        if (keyMatchedResults.length > 0) {
+          var firstMatchedResult = keyMatchedResults[0];
+          var recognizedGrowingRegion = firstMatchedResult.substr(firstMatchedResult.indexOf(growingRegionVoiceRegKey)+growingRegionVoiceRegKey.length);
+          this.setState({sGrowingRegion: this.capitalizeFirstLetter(recognizedGrowingRegion)});
+          return;
+        }
+        //End of Growing Region
+
+        //Start of City
+        keyMatchedResults = this.getKeyMatchedResults(results, cityVoiceRegKey);
+        if (keyMatchedResults.length > 0) {
+          var firstMatchedResult = keyMatchedResults[0];
+          var recognizedCity = firstMatchedResult.substr(firstMatchedResult.indexOf(cityVoiceRegKey)+cityVoiceRegKey.length);
+          this.setState({sCity: this.capitalizeFirstLetter(recognizedCity)});
+          return;
+        }
+        //End of City
+
+        //Start of State
+        keyMatchedResults = this.getKeyMatchedResults(results, stateVoiceRegKey);
+        if (keyMatchedResults.length > 0) {
+          var firstMatchedResult = keyMatchedResults[0];
+          var recognizedState = firstMatchedResult.substr(firstMatchedResult.indexOf(stateVoiceRegKey)+stateVoiceRegKey.length);
+          this.setState({sState: this.capitalizeFirstLetter(recognizedState)});
+          return;
+        }
+        //End of State
+
+        //Start of Quantity to print
+        keyMatchedResults = this.getKeyMatchedResults(results, quantityToPrintVoiceRegKey);
+        if (keyMatchedResults.length > 0) {
+          for(var i=0; i<keyMatchedResults.length; i++){
+            var firstMatchedResult = keyMatchedResults[i];
+            var recognizedQuantityToPrint = firstMatchedResult.substr(firstMatchedResult.indexOf(quantityToPrintVoiceRegKey)+quantityToPrintVoiceRegKey.length);
+            if (!isNaN(Number(recognizedQuantityToPrint.trim()))) {
+              this.onQuantityToPrintChange(recognizedQuantityToPrint);
+              break;
+            }
+          }
+          return;
+        }
+        //End of Quantity to print
+
+        //Start of Item number
+        keyMatchedResults = this.getKeyMatchedResults(results, itemNumberVoiceRegKey);
+        if (keyMatchedResults.length > 0) {
+          for(var i=0; i<keyMatchedResults.length; i++){
+            var firstMatchedResult = keyMatchedResults[i];
+            var recognizedItemNumber = firstMatchedResult.substr(firstMatchedResult.indexOf(itemNumberVoiceRegKey)+itemNumberVoiceRegKey.length);
+            if (!isNaN(Number(recognizedItemNumber.trim()))) {
+              this.onItemNumberFilterChange(recognizedItemNumber);
+              break;
+            }
+          }
+          return;
+        }
+        //End of Item number
+
+        //Start of Print
+        if(results.indexOf(printVoiceRegKey) > -1) {
+          this.onPrintBtnClicked();
+        }
+        //End of Print
+    }
+  }
+  
+  onSpeechPartialResults(e) {
+  }
+
+  onSpeechVolumeChanged(e) {    
+  }
+
+  async startRecognizing(e) {
+    try {
+      await Voice.start('en-US');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  
+  getKeyMatchedResults(results, searchKey) {
+    var matchedResults = _.filter(results, function(item) {            
+            return item.includes(searchKey);
+          });    
+    return matchedResults;
+  }
+
+  capitalizeFirstLetter(string) {
+    string = string.trim();
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  //End of Voice input
 }
 
 const styles = StyleSheet.create({
@@ -636,7 +840,7 @@ const styles = StyleSheet.create({
     fontSize:18,
     color:'#000000'
   },
-  dateView:{
+  rowView:{
     flexDirection:'row'
   },
   datePickerText:{
