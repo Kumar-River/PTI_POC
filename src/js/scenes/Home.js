@@ -638,201 +638,136 @@ export default class Home extends Component {
     
   onSpeechResults(e) {
     var results = e.value;
+    var result;
+    var dropDownResult;
     results = results.map(v => v.toLowerCase());
-    console.log("results "+results);
+    console.log("Kumar results "+results);
     
     if (results.length > 0) {
-      var keyMatchedResults = [];
+
+      //Start of Print
+      if(results.indexOf(printVoiceRegKey) > -1) {
+        if (!this.state.isFormInValid) {
+          this.onPrintBtnClicked();
+        }
+        else {
+          Tts.speak(Messages.inValidLabelForm);
+        }
+        return;
+      }
+      //End of Print
 
       //Start of GTIN
-      keyMatchedResults = this.getKeyMatchedResults(results, gtinVoiceRegKey);
-      if (keyMatchedResults.length > 0) {
-        var gtinNamesInLowerCase = _.map(_.map(mGTINList, 'value'), function(item){return item.toLowerCase().trim()})
-        for(var i=0; i<keyMatchedResults.length; i++) {
-          var firstMatchedResult = keyMatchedResults[i];
-          var recognizedGTIN = firstMatchedResult.substr(firstMatchedResult.indexOf(gtinVoiceRegKey)+gtinVoiceRegKey.length).trim();
-          const matchedGTINs = this.getKeyMatchedResults(gtinNamesInLowerCase, recognizedGTIN);
-          if (matchedGTINs.length > 0) {
-            var gtinInRightCase = _.filter(_.map(mGTINList, 'value'), function(item){ 
-              if(item.toLowerCase().trim() == matchedGTINs[0])
-                return item;
-            });
-
-            console.log('gtinInRightCase '+gtinInRightCase);
-            this.onGTINItemSelected(gtinInRightCase[0]);
-            break;
-          }
-        }
+      dropDownResult = this.getSpeechInputMatchWithVoiceKeyForDropDown(results, gtinVoiceRegKey, mGTINList, 'value');
+      if (dropDownResult.isVoiceRecgKeyMatched) {
+        if (dropDownResult.isMatchedDropdownValueFound) 
+          this.onGTINItemSelected(dropDownResult.matchedDropdownValue);
+        else
+          Tts.speak(Messages.gtinNotFound);
         return;
       }
       //End of GTIN
 
       //Start of Description
-      keyMatchedResults = this.getKeyMatchedResults(results, descriptionVoiceRegKey);
-      if (keyMatchedResults.length > 0) {
-        var descriptionNamesInLowerCase = _.map(_.map(this.state.sDescriptions, 'value'), function(item){return item.toLowerCase().trim()})
-        for(var i=0; i<keyMatchedResults.length; i++) {
-          var firstMatchedResult = keyMatchedResults[i];
-          var recognizedDescription = firstMatchedResult.substr(firstMatchedResult.indexOf(descriptionVoiceRegKey)+descriptionVoiceRegKey.length).trim();
-          const matchedDescriptions = this.getKeyMatchedResults(descriptionNamesInLowerCase, recognizedDescription);
-          if (matchedDescriptions.length > 0) {
-            var descriptionInRightCase = _.filter(_.map(this.state.sDescriptions, 'value'), function(item){ 
-              if(item.toLowerCase().trim() == matchedDescriptions[0])
-                return item;
-            });
-
-            console.log('descriptionInRightCase '+descriptionInRightCase);
-            this.onDescriptionSelected(descriptionInRightCase[0]);
-            break;
-          }
-        }
+      dropDownResult = this.getSpeechInputMatchWithVoiceKeyForDropDown(results, descriptionVoiceRegKey, this.state.sDescriptions, 'value');
+      if (dropDownResult.isVoiceRecgKeyMatched) {
+        if (dropDownResult.isMatchedDropdownValueFound)
+          this.onDescriptionSelected(dropDownResult.matchedDropdownValue);
+        else
+          Tts.speak(Messages.descriptionNotFound);
         return;
       }
       //End of Description
       
       //Start of Commodity
-      keyMatchedResults = this.getKeyMatchedResults(results, commodityVoiceRegKey);
-      if (keyMatchedResults.length > 0) {
-        var commodityNamesInLowerCase = _.map(_.map(this.state.sCommodityList, 'value'), function(item){return item.toLowerCase().trim()})
-        for(var i=0; i<keyMatchedResults.length; i++){
-          var firstMatchedResult = keyMatchedResults[i];
-          var recognizedCommodity = firstMatchedResult.substr(firstMatchedResult.indexOf(commodityVoiceRegKey)+commodityVoiceRegKey.length).trim();
-          const matchedCommodities = this.getKeyMatchedResults(commodityNamesInLowerCase, recognizedCommodity);
-          if (matchedCommodities.length > 0) {
-            var commodityInRightCase = _.filter(_.map(this.state.sCommodityList, 'value'), function(item){ 
-              if(item.toLowerCase().trim() == matchedCommodities[0])
-                return item;
-            });
-
-            console.log('commodityInRightCase '+commodityInRightCase);
-            this.onCommoditySelected(commodityInRightCase[0]);
-            break;
-          }
-        }
-        return;          
+      dropDownResult = this.getSpeechInputMatchWithVoiceKeyForDropDown(results, commodityVoiceRegKey, this.state.sCommodityList, 'value');
+      if (dropDownResult.isVoiceRecgKeyMatched) {
+        if (dropDownResult.isMatchedDropdownValueFound)
+          this.onCommoditySelected(dropDownResult.matchedDropdownValue);
+        else
+          Tts.speak(Messages.commodityNotFound);
+        return;
       }
       //End of Commodity
 
       //Start of Variety
-      keyMatchedResults = this.getKeyMatchedResults(results, varietyVoiceRegKey);
-      if (keyMatchedResults.length > 0) {
-        var varietyNamesInLowerCase = _.map(_.map(this.state.sVarietyList, 'value'), function(item){return item.toLowerCase().trim()})
-        for(var i=0; i<keyMatchedResults.length; i++){
-          var firstMatchedResult = keyMatchedResults[i];
-          var recognizedVariety = firstMatchedResult.substr(firstMatchedResult.indexOf(varietyVoiceRegKey)+varietyVoiceRegKey.length).trim();
-          const matchedVarieties = this.getKeyMatchedResults(varietyNamesInLowerCase, recognizedVariety);
-          if (matchedVarieties.length > 0) {
-            var varietyInRightCase = _.filter(_.map(this.state.sVarietyList, 'value'), function(item){ 
-              if(item.toLowerCase().trim() == matchedVarieties[0])
-                return item;
-            });
-
-            console.log('varietyInRightCase '+varietyInRightCase);
-            this.onVarietySelected(varietyInRightCase[0]);
-            break;
-          }
-        }
-        return;          
+      dropDownResult = this.getSpeechInputMatchWithVoiceKeyForDropDown(results, varietyVoiceRegKey, this.state.sVarietyList, 'value');
+      if (dropDownResult.isVoiceRecgKeyMatched) {
+        if (dropDownResult.isMatchedDropdownValueFound)
+          this.onVarietySelected(dropDownResult.matchedDropdownValue);
+        else
+          Tts.speak(Messages.varietyNotFound);
+        return;
       }
       //End of Variety
 
       //Start of Date
-      keyMatchedResults = this.getKeyMatchedResults(results, dateVoiceRegKey);
-      if (keyMatchedResults.length > 0) {
-        var dateNamesInLowerCase = _.map(_.map(mDateTypeList, 'value'), function(item){return item.toLowerCase().trim()})
-        for(var i=0; i<keyMatchedResults.length; i++){
-          var firstMatchedResult = keyMatchedResults[i];
-          var recognizedDateType = firstMatchedResult.substr(firstMatchedResult.indexOf(dateVoiceRegKey)+dateVoiceRegKey.length).trim();
-          const matchedDateTypes = this.getKeyMatchedResults(dateNamesInLowerCase, recognizedDateType);
-          if (matchedDateTypes.length > 0) {
-            var dateTypeInRightCase = _.filter(_.map(mDateTypeList, 'value'), function(item){ 
-              if(item.toLowerCase().trim() == matchedDateTypes[0])
-                return item;
-            });
-
-            console.log('dateTypeInRightCase '+dateTypeInRightCase);
-            this.onDateTypeChanged(dateTypeInRightCase[0]);
-            break;
-          }
-        }
-        return;          
+      dropDownResult = this.getSpeechInputMatchWithVoiceKeyForDropDown(results, dateVoiceRegKey, mDateTypeList, 'value');
+      if (dropDownResult.isVoiceRecgKeyMatched) {
+        if (dropDownResult.isMatchedDropdownValueFound)
+          this.onDateTypeChanged(dropDownResult.matchedDropdownValue);
+        else
+          Tts.speak(Messages.datetypeNotFound);
+        return;
       }
       //End of Date
 
       //Start of Printer
-      keyMatchedResults = this.getKeyMatchedResults(results, printerVoiceRegKey);
-      if (keyMatchedResults.length > 0) {
-        var printerConnTypesInLowerCase = _.map(_.map(mRadioPrintConnectionTypes, 'label'), function(item){return item.toLowerCase().trim()})
-        for(var i=0; i<keyMatchedResults.length; i++){
-          var firstMatchedResult = keyMatchedResults[i];
-          var recognizedPrinterConnType = firstMatchedResult.substr(firstMatchedResult.indexOf(printerVoiceRegKey)+printerVoiceRegKey.length).trim();
-          const matchedPrinterConnTypes = this.getKeyMatchedResults(printerConnTypesInLowerCase, recognizedPrinterConnType);
-          if (matchedPrinterConnTypes.length > 0) {
-            var printerConnTypeInRightCase = _.filter(_.map(mRadioPrintConnectionTypes, 'label'), function(item){ 
-              if(item.toLowerCase().trim() == matchedPrinterConnTypes[0])
-                return item;
-            });
-
-            if (printerConnTypeInRightCase == mRadioPrintConnectionTypes[0].label) {
-              this.refs.printerConnectionType.updateIsActiveIndex(BLUETOOTH);
-            }
-            else if (printerConnTypeInRightCase == mRadioPrintConnectionTypes[1].label) {
-              this.refs.printerConnectionType.updateIsActiveIndex(IP_DNS);
-            }
-            break;
+      dropDownResult = this.getSpeechInputMatchWithVoiceKeyForDropDown(results, printerVoiceRegKey, mRadioPrintConnectionTypes, 'label');
+      if (dropDownResult.isVoiceRecgKeyMatched) {
+        if (dropDownResult.isMatchedDropdownValueFound){
+          if (dropDownResult.matchedDropdownValue == mRadioPrintConnectionTypes[0].label) {
+            this.refs.printerConnectionType.updateIsActiveIndex(BLUETOOTH);
+            this.onPrinterConnectionTypeChanged(BLUETOOTH);
+          }
+          else if (dropDownResult.matchedDropdownValue == mRadioPrintConnectionTypes[1].label) {
+            this.refs.printerConnectionType.updateIsActiveIndex(IP_DNS);
+            this.onPrinterConnectionTypeChanged(IP_DNS);
           }
         }
-        return;          
+        else
+          Tts.speak(Messages.printerConnectionTypeNotFound);
+        return;
       }
       //End of Printer
 
       //Start of Lot Number
-      keyMatchedResults = this.getKeyMatchedResults(results, lotNumberVoiceRegKey);
-      if (keyMatchedResults.length > 0) {
-        var firstMatchedResult = keyMatchedResults[0];
-        var recognizedLotNumber = firstMatchedResult.substr(firstMatchedResult.indexOf(lotNumberVoiceRegKey)+lotNumberVoiceRegKey.length);
-        this.onLotNumberChanged(this.capitalizeFirstLetter(recognizedLotNumber));
+      result = this.getSpeechInputMatchWithVoiceKey(results, lotNumberVoiceRegKey);
+      if (result) {
+        this.onLotNumberChanged(this.capitalizeFirstLetter(result));
         return;
       }
       //End of Lot Number
 
       //Start of Growing Region
-      keyMatchedResults = this.getKeyMatchedResults(results, growingRegionVoiceRegKey);
-      if (keyMatchedResults.length > 0) {
-        var firstMatchedResult = keyMatchedResults[0];
-        var recognizedGrowingRegion = firstMatchedResult.substr(firstMatchedResult.indexOf(growingRegionVoiceRegKey)+growingRegionVoiceRegKey.length);
-        this.setState({sGrowingRegion: this.capitalizeFirstLetter(recognizedGrowingRegion)});
+      result = this.getSpeechInputMatchWithVoiceKey(results, growingRegionVoiceRegKey);
+      if (result) {
+        this.setState({sGrowingRegion: this.capitalizeFirstLetter(result)});
         return;
       }
       //End of Growing Region
 
       //Start of City
-      keyMatchedResults = this.getKeyMatchedResults(results, cityVoiceRegKey);
-      if (keyMatchedResults.length > 0) {
-        var firstMatchedResult = keyMatchedResults[0];
-        var recognizedCity = firstMatchedResult.substr(firstMatchedResult.indexOf(cityVoiceRegKey)+cityVoiceRegKey.length);
-        this.setState({sCity: this.capitalizeFirstLetter(recognizedCity)});
+      result = this.getSpeechInputMatchWithVoiceKey(results, cityVoiceRegKey);
+      if (result) {
+        this.setState({sCity: this.capitalizeFirstLetter(result)});
         return;
       }
       //End of City
 
       //Start of State
-      keyMatchedResults = this.getKeyMatchedResults(results, stateVoiceRegKey);
-      if (keyMatchedResults.length > 0) {
-        var firstMatchedResult = keyMatchedResults[0];
-        var recognizedState = firstMatchedResult.substr(firstMatchedResult.indexOf(stateVoiceRegKey)+stateVoiceRegKey.length);
-        this.setState({sState: this.capitalizeFirstLetter(recognizedState)});
+      result = this.getSpeechInputMatchWithVoiceKey(results, stateVoiceRegKey);
+      if (result) {
+        this.setState({sState: this.capitalizeFirstLetter(result)});
         return;
       }
       //End of State
 
       //Start of MAC address
       if (this.state.sSelectedPrinterConnectionType == BLUETOOTH){
-        keyMatchedResults = this.getKeyMatchedResults(results, macAddressVoiceRegKey);
-        if (keyMatchedResults.length > 0) {
-          var firstMatchedResult = keyMatchedResults[0];
-          var recognizedMACAddress = firstMatchedResult.substr(firstMatchedResult.indexOf(macAddressVoiceRegKey)+macAddressVoiceRegKey.length);
-          this.onMacAddressChanged(recognizedMACAddress);
+        result = this.getSpeechInputMatchWithVoiceKey(results, macAddressVoiceRegKey);
+        if (result) {
+          this.onMacAddressChanged(result);
           return;
         }
       }
@@ -840,11 +775,9 @@ export default class Home extends Component {
 
       //Start of IP address
       if (this.state.sSelectedPrinterConnectionType == IP_DNS){
-        keyMatchedResults = this.getKeyMatchedResults(results, ipAddressVoiceRegKey);
-        if (keyMatchedResults.length > 0) {
-          var firstMatchedResult = keyMatchedResults[0];
-          var recognizedIPAddress = firstMatchedResult.substr(firstMatchedResult.indexOf(ipAddressVoiceRegKey)+ipAddressVoiceRegKey.length);
-          this.onIPAddressChanged(recognizedIPAddress);
+        result = this.getSpeechInputMatchWithVoiceKey(results, ipAddressVoiceRegKey);
+        if (result) {
+          this.onIPAddressChanged(result);
           return;
         }
       }
@@ -852,58 +785,30 @@ export default class Home extends Component {
 
       //Start of Port
       if (this.state.sSelectedPrinterConnectionType == IP_DNS){
-        keyMatchedResults = this.getKeyMatchedResults(results, portVoiceRegKey);
-        if (keyMatchedResults.length > 0) {
-          var firstMatchedResult = keyMatchedResults[0];
-          var recognizedPort = firstMatchedResult.substr(firstMatchedResult.indexOf(portVoiceRegKey)+portVoiceRegKey.length);
-          this.onPortChanged(recognizedPort);
+        result = this.getSpeechInputMatchWithVoiceKey(results, portVoiceRegKey);
+        if (result) {
+          this.onPortChanged(result);
           return;
         }
       }
       //End of Port
 
       //Start of Quantity to print
-      keyMatchedResults = this.getKeyMatchedResults(results, quantityToPrintVoiceRegKey);
-      if (keyMatchedResults.length > 0) {
-        for(var i=0; i<keyMatchedResults.length; i++){
-          var firstMatchedResult = keyMatchedResults[i];
-          var recognizedQuantityToPrint = firstMatchedResult.substr(firstMatchedResult.indexOf(quantityToPrintVoiceRegKey)+quantityToPrintVoiceRegKey.length);
-          if (!isNaN(Number(recognizedQuantityToPrint.trim()))) {
-            this.onQuantityToPrintChange(recognizedQuantityToPrint);
-            break;
-          }
-        }
+      result = this.getSpeechInputMatchWithVoiceKeyForNumber(results, quantityToPrintVoiceRegKey);
+      if (result) {
+        this.onQuantityToPrintChange(result);
         return;
       }
       //End of Quantity to print
 
       //Start of Item number
-      keyMatchedResults = this.getKeyMatchedResults(results, itemNumberVoiceRegKey);
-      if (keyMatchedResults.length > 0) {
-        for(var i=0; i<keyMatchedResults.length; i++){
-          var firstMatchedResult = keyMatchedResults[i];
-          var recognizedItemNumber = firstMatchedResult.substr(firstMatchedResult.indexOf(itemNumberVoiceRegKey)+itemNumberVoiceRegKey.length);
-          if (!isNaN(Number(recognizedItemNumber.trim()))) {
-            this.onItemNumberFilterChange(recognizedItemNumber);
-            break;
-          }
-        }
+      result = this.getSpeechInputMatchWithVoiceKeyForNumber(results, itemNumberVoiceRegKey);
+      if (result) {
+        this.onItemNumberFilterChange(result);
         return;
       }
-      //End of Item number
+      //End of Item number      
       
-      //Start of Print
-      if(results.indexOf(printVoiceRegKey) > -1) {
-        if (!this.state.isFormInValid) {
-          this.onPrintBtnClicked();
-        }
-        else {
-          this.showToastAndVoiceMessage(Messages.inValidLabelForm);
-        }
-        return;
-      }
-      //End of Print
-
       this.showToastAndVoiceMessage(Messages.tryAgainWithKeyword);
     }
   }
@@ -926,11 +831,63 @@ export default class Home extends Component {
       console.error(e);
     }
   }
+
+  getSpeechInputMatchWithVoiceKeyForDropDown(googleResults, voiceRecgKey, dropDownList, dropDownListKey){
+    var keyMatchedResults = this.getKeyMatchedResults(googleResults, voiceRecgKey);
+    var resObj = {isVoiceRecgKeyMatched: false, isMatchedDropdownValueFound: false, matchedDropdownValue:''};
+    if (keyMatchedResults.length > 0) {
+      resObj.isVoiceRecgKeyMatched = true;
+      var dropdownNamesInLowerCase = _.map(_.map(dropDownList, dropDownListKey), function(item){return item.toLowerCase().trim()})
+      for(var i=0; i<keyMatchedResults.length; i++) {
+        var firstMatchedResult = keyMatchedResults[i];
+        var recognizedValue = firstMatchedResult.substr(firstMatchedResult.indexOf(voiceRecgKey)+voiceRecgKey.length).trim();
+        const matchedValues = this.getKeyMatchedResults(dropdownNamesInLowerCase, recognizedValue);
+        if (matchedValues.length > 0) {
+          resObj.isMatchedDropdownValueFound = true;          
+          var matchedValuesInRightCase = _.filter(_.map(dropDownList, dropDownListKey), function(item){ 
+            if(item.toLowerCase().trim() == matchedValues[0])
+              return item;
+          });
+
+          console.log('matchedValuesInRightCase '+matchedValuesInRightCase);
+          resObj.matchedDropdownValue = matchedValuesInRightCase[0];
+          break;
+        }
+      }
+    }
+    return resObj;
+  }
+
+  getSpeechInputMatchWithVoiceKey(googleResults, voiceRecgKey){
+    var keyMatchedResults = this.getKeyMatchedResults(googleResults, voiceRecgKey);
+    if (keyMatchedResults.length > 0) {
+      var firstMatchedResult = keyMatchedResults[0];
+      return firstMatchedResult.substr(firstMatchedResult.indexOf(voiceRecgKey)+voiceRecgKey.length);//returns result by removing voice key.
+    }
+  }
+
+  getSpeechInputMatchWithVoiceKeyForNumber(googleResults, voiceRecgKey){
+    var keyMatchedResults = this.getKeyMatchedResults(googleResults, voiceRecgKey);
+      if (keyMatchedResults.length > 0) {
+        var result;
+        for(var i=0; i<keyMatchedResults.length; i++){
+          var firstMatchedResult = keyMatchedResults[i];
+          result = firstMatchedResult.substr(firstMatchedResult.indexOf(voiceRecgKey)+voiceRecgKey.length);
+          if (!isNaN(Number(result.trim()))) {
+            break;
+          }
+        }
+        return result;
+      }
+  }
   
   getKeyMatchedResults(results, searchKey) {
-    var matchedResults = _.filter(results, function(item) {
-            return item.includes(searchKey);
-          });    
+    var matchedResults =[];
+    if (results.length >0 && searchKey.trim().length >0) {
+      matchedResults = _.filter(results, function(item) {
+              return item.includes(searchKey);
+            });
+    }
     return matchedResults;
   }
 
