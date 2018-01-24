@@ -187,13 +187,20 @@
             android:textSize="12dp"
             android:textStyle="bold"/>
 
-        <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
-            android:src="@drawable/tractor"/>
+            android:layout_weight="1"
+            android:gravity="center_horizontal|bottom">
+
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/tractor"/>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/xTVHMCode"
@@ -208,13 +215,20 @@
             android:textSize="12dp"
             android:textStyle="bold"/>
 
-        <ImageView
-            android:id="@+id/xIvDataMatrixCode"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"/>
+            android:layout_marginRight="5dp"
+            android:layout_weight="1"
+            android:gravity="center_horizontal|bottom">
+
+            <ImageView
+                android:id="@+id/xIvDataMatrixCode"
+                android:layout_width="40dp"
+                android:layout_height="40dp"/>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="60dp"
