@@ -4,43 +4,23 @@
  * @flow
  */
 
-import React, { Component } from 'react';
-import { BackAndroid, Text } from 'react-native';
-import NavigationExperimental from 'react-native-deprecated-custom-components';
+import React from 'react';
+import { StackNavigator } from 'react-navigation';
 
 import Splash from './Splash';
 import Home from './Home';
 import Event from './Event';
 
-var mNavigator;
-
-BackAndroid.addEventListener('hardwareBackPress', () => {
-   if (mNavigator && mNavigator.getCurrentRoutes().length > 1) {
-     mNavigator.pop();
-     return true;
-   }
-   return false;
-  });
-
-export default class App extends Component<{}> {
-  render() {
-    return (
-      <NavigationExperimental.Navigator
-          initialRoute={{screen: 'Splash'}}
-          configureScene={(route, routeStack) => NavigationExperimental.Navigator.SceneConfigs.FloatFromRight}
-          renderScene={(route, nav) => {return this.renderScene(route, nav)}}/>
-    );
+const App = StackNavigator({
+    Splash: { screen: Splash},
+    Home: { screen: Home},
+    Event: {screen: Event}
+},
+{
+  headerMode: 'none',
+  navigationOptions: {
+    headerVisible: false,
   }
+ });
 
-  renderScene(route,nav) {
-      mNavigator = nav;
-      switch (route.screen) {
-        case "Splash":
-          return <Splash navigator={nav}/>
-        case "Home":
-          return <Home navigator={nav} />
-        case "Event":
-          return <Event navigator={nav} eventObj={route.eventObj}/>
-      }
-  }
-}
+export default App;

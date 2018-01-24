@@ -11,14 +11,14 @@
 		"moment": "^2.19.2",
 		"react": "16.0.0",
 		"react-native": "0.50.3",
-		"react-native-deprecated-custom-components": "git+https://github.com/facebookarchive/react-native-custom-components.git",
 		"react-native-localization": "^0.2.1",
 		"react-native-material-buttons": "^0.5.0",
 		"react-native-material-dropdown": "^0.5.2",
 		"react-native-material-textfield": "^0.10.2",
 		"react-native-simple-radio-button": "^2.7.0",
 		"react-native-tts": "^1.4.1",
-		"react-native-voice": "^0.2.5"
+		"react-native-voice": "^0.2.5",
+		"react-navigation": "^1.0.0-beta.27"
 	},
 	"devDependencies": {
 		"babel-jest": "21.2.0",

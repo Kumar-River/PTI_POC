@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, View, Image} from 'react-native';
-
-import Home from './Home';
+import { NavigationActions } from 'react-navigation';
 
 //Released Staging version 1.0
 
@@ -9,8 +8,14 @@ export default class Splash extends Component {
 
 	componentWillMount() {
 	  setTimeout(async () => {
-	    	    
-	    this.props.navigator.replace({screen: 'Home'});
+	  //Replacing splash screen with Home screen
+	    const resetAction = NavigationActions.reset({
+	        index: 0,
+	        actions: [
+	          NavigationActions.navigate({ routeName: "Home"})
+	        ]
+	      });
+	    this.props.navigation.dispatch(resetAction);
 	    
 	  }, 2000);
 	}

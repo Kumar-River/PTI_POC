@@ -63,7 +63,7 @@ export default class Home extends Component {
   }
 
   componentWillUnmount() {
-    Voice.destroy().then(Voice.removeAllListeners);
+    //Voice.destroy().then(Voice.removeAllListeners);
   }
 
 	render() {    
@@ -609,9 +609,7 @@ export default class Home extends Component {
     //finalEventObj.PTIEvent.EventTimeZoneOffset = date.getTimezoneOffset() / 60;
     finalEventObj.PTIEvent.ProcessTime = new Date();
 
-    this.props.navigator.push({screen: 'Home'});//To fix white background issue on Event page.
-    this.props.navigator.replace({screen: 'Event', eventObj: finalEventObj});
-
+    this.props.navigation.navigate("Event", {eventObj: finalEventObj});
   }
 
   //Start of Voice input 
