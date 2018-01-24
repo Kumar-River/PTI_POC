@@ -26,7 +26,7 @@ const BLUETOOTH = 0, IP_DNS = 1;
 const mRadioPrintConnectionTypes = [{label:'Bluetooth', value:BLUETOOTH}, {label:'IP/DNS', value:IP_DNS}];
 var KEYS = { BARCODE_VALUE:"barcodevalue", GTIN_NUMBER_LBL:"GTINNumberLbl", LOT_NUMBER_LBL:"lotNumberLbl", COMMODITY:"commodity", 
                 VARIETY:"variety", PACKLINE7:"packLine7", DATE_TYPE:"dateType", COUNTRY_OF_ORIGIN:"countryOfOrigin", GRADE:"grade", DATE:"date"};
-const gtinVoiceRegKey='gtin', descriptionVoiceRegKey='description', commodityVoiceRegKey='commodity', varietyVoiceRegKey='variety', dateVoiceRegKey='date', lotNumberVoiceRegKey='lot number', growingRegionVoiceRegKey='growing region', cityVoiceRegKey='city', 
+const gtinVoiceRegKey='global trade item number', descriptionVoiceRegKey='description', commodityVoiceRegKey='commodity', varietyVoiceRegKey='variety', dateVoiceRegKey='date', lotNumberVoiceRegKey='lot number', growingRegionVoiceRegKey='growing region', cityVoiceRegKey='city', 
         stateVoiceRegKey='state', quantityToPrintVoiceRegKey='quantity to print', itemNumberVoiceRegKey='item number', printerVoiceRegKey='printer', printVoiceRegKey='print', macAddressVoiceRegKey='mac address', ipAddressVoiceRegKey='ip address', portVoiceRegKey='port';
 const VOICE_LANGUAGE = 'en-US';
 
@@ -82,9 +82,15 @@ export default class Home extends Component {
                 <Image source={require("../../res/images/ic_menu.png")} />
               </Button>
               <Text style={styles.title}>HarvestMark PTI</Text>
-              <Button color='transparent' onPress={this.startRecognizing.bind(this)}>
-                <Image source={require("../../res/images/ic_mic.png")} />
-              </Button>
+              <View style={styles.rowView}>
+                <Button style={{marginRight:15}} color='transparent' 
+                  onPress={this.startRecognizing.bind(this)}>
+                  <Image source={require("../../res/images/ic_mic.png")} />
+                </Button>
+                <Button color='transparent' onPress={this.onHelpButtonClicked.bind(this)}>
+                  <Image source={require("../../res/images/ic_help.png")} />
+                </Button>
+              </View>
             </View>
 
             <ScrollView>
@@ -610,6 +616,10 @@ export default class Home extends Component {
     finalEventObj.PTIEvent.ProcessTime = new Date();
 
     this.props.navigation.navigate("Event", {eventObj: finalEventObj});
+  }
+
+  onHelpButtonClicked(){
+    this.props.navigation.navigate("Help");
   }
 
   //Start of Voice input 

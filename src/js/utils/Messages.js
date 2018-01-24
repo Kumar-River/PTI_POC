@@ -6,12 +6,12 @@ let Messages = new LocalizedStrings({
    inValidLabelForm:"Please fill all the mandatory fields.",
    tryAgain:"Please try again.",
    tryAgainWithKeyword:"Please try again with the proper keyword. For example, commodity pepper.",
-   gtinNotFound:"Specified gtin not found.",
-   descriptionNotFound:"Specified description not found.",
-   commodityNotFound:"Specified commodity not found.",
-   varietyNotFound:"Specified variety not found.",
-   datetypeNotFound:"Specified date type not found.",
-   printerConnectionTypeNotFound:"Specified printer connection type not found."
+   gtinNotFound:"Specified global trade item number is not found.",
+   descriptionNotFound:"Specified description is not found.",
+   commodityNotFound:"Specified commodity is not found.",
+   varietyNotFound:"Specified variety is not found.",
+   datetypeNotFound:"Specified date type is not found.",
+   printerConnectionTypeNotFound:"Specified printer connection type is not found."
  }
 });
 

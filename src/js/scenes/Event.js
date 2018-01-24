@@ -10,11 +10,11 @@ export default class Event extends Component {
 	    <View style={styles.container}>
 
 	    	<View style={styles.titlebar}>
-              <Button color='transparent' onPress={() => this.props.navigation.goBack()}>
-                <Image source={require("../../res/images/ic_arrow_back.png")} />
-              </Button>   
-              <Text style={styles.title}>Event File</Text>   
-            </View>
+          <Button color='transparent' onPress={() => this.props.navigation.goBack()}>
+            <Image source={require("../../res/images/ic_arrow_back.png")} />
+          </Button>   
+          <Text style={styles.title}>Event File</Text>   
+        </View>
 
 	    	<ScrollView>
 	  			<Text style={styles.eventText}>{JSON.stringify(this.props.navigation.state.params.eventObj)}</Text>
