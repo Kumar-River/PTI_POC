@@ -824,6 +824,7 @@ export default class Home extends Component {
 
   async startRecognizing(e) {
     try {
+      Tts.stop();
       await Voice.start(VOICE_LANGUAGE);
     } catch (e) {
       console.error(e);
